@@ -13,6 +13,10 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
+:: Get exact Python path to ensure CMake compiles for the same version we use to run the game
+for /f "delims=" %%I in ('python -c "import sys; print(sys.executable)"') do set PYTHON_EXE=%%I
+echo [INFO] Using Python at: %PYTHON_EXE%
+
 :: Check if CMake is installed
 cmake --version >nul 2>&1
 if %errorlevel% neq 0 (
@@ -37,10 +41,10 @@ gcc --version >nul 2>&1
 if %errorlevel% equ 0 (
     echo [INFO] GCC detected. Using MinGW Makefiles.
     :: -DCMAKE_POLICY_VERSION_MINIMUM=3.5 prevents errors with newer CMake versions when compiling third-party libraries (like Raylib) that have old minimum version requirements.
-    cmake .. -G "MinGW Makefiles" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    cmake .. -G "MinGW Makefiles" -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DPython3_EXECUTABLE="%PYTHON_EXE%"
 ) else (
     echo [INFO] GCC not detected. Using default generator.
-    cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DPython3_EXECUTABLE="%PYTHON_EXE%"
 )
 
 if %errorlevel% neq 0 (
