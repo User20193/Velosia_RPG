@@ -41,10 +41,11 @@ gcc --version >nul 2>&1
 if %errorlevel% equ 0 (
     echo [INFO] GCC detected. Using MinGW Makefiles.
     :: -DCMAKE_POLICY_VERSION_MINIMUM=3.5 prevents errors with newer CMake versions when compiling third-party libraries (like Raylib) that have old minimum version requirements.
-    cmake .. -G "MinGW Makefiles" -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DPython3_EXECUTABLE="%PYTHON_EXE%"
+    :: Pass both Python3_EXECUTABLE and PYTHON_EXECUTABLE (for Pybind11's older FindPythonInterp)
+    cmake .. -G "MinGW Makefiles" -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DPython3_EXECUTABLE="%PYTHON_EXE%" -DPYTHON_EXECUTABLE="%PYTHON_EXE%"
 ) else (
     echo [INFO] GCC not detected. Using default generator.
-    cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DPython3_EXECUTABLE="%PYTHON_EXE%"
+    cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DPython3_EXECUTABLE="%PYTHON_EXE%" -DPYTHON_EXECUTABLE="%PYTHON_EXE%"
 )
 
 if %errorlevel% neq 0 (
