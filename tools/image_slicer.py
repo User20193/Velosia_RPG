@@ -23,33 +23,28 @@ def slice_image(input_path, output_dir):
         box = (0, top, width, bottom)
         layer = img.crop(box)
 
-        # Turn white into transparent, but more aggressively to remove halos
-        # Let's just find the bounding box of non-white pixels, and then scale the whole layer
-        # wait, we shouldn't crop to bbox and then scale. The layer itself contains transparent space to place the objects correctly on the screen!
-        # So we should just remove the white background, and scale the *entire layer* to 1366x768 (or maintain aspect ratio relative to 768)
-
-        # Make white transparent
-        datas = layer.getdata()
-        newData = []
-        for item in datas:
-            # More aggressive threshold to catch anti-aliased edges, or just exact white if it's pure pixel art
-            # Let's say anything > 200 is white background.
-            if item[0] >= 200 and item[1] >= 200 and item[2] >= 200:
-                newData.append((255, 255, 255, 0))
-            else:
-                newData.append(item)
-        layer.putdata(newData)
+        # Remove the checkerboard background
+        pixels = layer.load()
+        for y in range(layer.height):
+            for x in range(layer.width):
+                r, g, b, a = pixels[x, y]
+                # is grayscale?
+                if max(abs(r-g), abs(r-b), abs(g-b)) < 20:
+                    # is light or dark checkerboard?
+                    if (225 <= r <= 255) or (185 <= r <= 215):
+                        pixels[x, y] = (r, g, b, 0)
 
         out_path = os.path.join(output_dir, f"bg_layer{i+1}.png")
 
-        # We need to scale the *entire layer box* so that layer objects remain in their correct relative positions.
+        # The user's original image was 926x1197. Each layer is 926x199.
+        # We need to scale to fit 768 height.
+        # So layer height goes from 199 to 768.
+        # We need to preserve aspect ratio.
         target_height = 768
         ratio = target_height / layer.height
         target_width = int(layer.width * ratio)
 
-        # Use NEAREST to preserve pixel art look
         resized_layer = layer.resize((target_width, target_height), Image.Resampling.NEAREST)
-
         resized_layer.save(out_path)
         print(f"Saved layer {i+1} to {out_path} (Size: {target_width}x{target_height})")
 
