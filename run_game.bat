@@ -29,25 +29,25 @@ echo.
 if not exist "build" mkdir build
 cd build
 
-:: Run CMake Configuration
+:: Detect Compiler and run CMake Configuration
 echo [INFO] Configuring CMake...
-:: Try configuring default (usually MSVC if installed), otherwise fallback to MinGW Makefiles if GCC is used
-cmake ..
-if %errorlevel% neq 0 (
-    echo [WARN] Default generator failed. Attempting MinGW Makefiles...
 
-    :: CRITICAL: Clean up CMake cache from the failed default generator attempt
-    if exist "CMakeCache.txt" del CMakeCache.txt
-    if exist "CMakeFiles" rmdir /s /q CMakeFiles
-
+:: Check if GCC (MinGW) is available
+gcc --version >nul 2>&1
+if %errorlevel% equ 0 (
+    echo [INFO] GCC detected. Using MinGW Makefiles.
     cmake .. -G "MinGW Makefiles"
-    if %errorlevel% neq 0 (
-        echo.
-        echo [ERROR] CMake configuration failed!
-        echo Please ensure you have a C++ Compiler installed and in your PATH ^(e.g., MinGW-w64 or MSVC^).
-        pause
-        exit /b 1
-    )
+) else (
+    echo [INFO] GCC not detected. Using default generator.
+    cmake ..
+)
+
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERROR] CMake configuration failed!
+    echo Please ensure you have a C++ Compiler installed and in your PATH ^(e.g., MinGW-w64 or MSVC^).
+    pause
+    exit /b 1
 )
 
 :: Build the Engine
