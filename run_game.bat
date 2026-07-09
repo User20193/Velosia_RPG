@@ -35,6 +35,11 @@ echo [INFO] Configuring CMake...
 cmake ..
 if %errorlevel% neq 0 (
     echo [WARN] Default generator failed. Attempting MinGW Makefiles...
+
+    :: CRITICAL: Clean up CMake cache from the failed default generator attempt
+    if exist "CMakeCache.txt" del CMakeCache.txt
+    if exist "CMakeFiles" rmdir /s /q CMakeFiles
+
     cmake .. -G "MinGW Makefiles"
     if %errorlevel% neq 0 (
         echo.
