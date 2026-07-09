@@ -10,10 +10,13 @@ class ParallaxBackground:
         self.scroll_offsets = [0.0 for _ in self.layers]
 
     def update(self, delta_scroll):
-        # We assume the texture width exactly matches the internal window width (e.g., 1366)
-        width = velosia_core.DisplayManager.get_internal_width()
+        res = velosia_core.ResourceManager.get_instance()
 
-        for i, (_, speed) in enumerate(self.layers):
+        for i, (tex_id, speed) in enumerate(self.layers):
+            width = res.get_texture_width(tex_id)
+            if width == 0:
+                width = velosia_core.DisplayManager.get_internal_width()
+
             self.scroll_offsets[i] -= delta_scroll * speed
 
             # CRITICAL FIX for the white gap: Use modulo math to guarantee the offset never mathematically skips a pixel
@@ -23,10 +26,14 @@ class ParallaxBackground:
                 self.scroll_offsets[i] -= width
 
     def render(self):
-        width = velosia_core.DisplayManager.get_internal_width()
         height = velosia_core.DisplayManager.get_internal_height()
+        res = velosia_core.ResourceManager.get_instance()
 
         for i, (tex_id, _) in enumerate(self.layers):
+            width = res.get_texture_width(tex_id)
+            if width == 0:
+                width = velosia_core.DisplayManager.get_internal_width()
+
             offset = self.scroll_offsets[i]
             # Calculate scale to ensure the texture fills the entire screen height
             # (Assuming texture height is 768, scale will be 1.0, but this makes it robust)

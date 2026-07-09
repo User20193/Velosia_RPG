@@ -26,6 +26,10 @@ namespace Velosia::Engine {
         // Unload all textures (useful for changing scenes/levels)
         void ClearTextures();
 
+        // Helper for UI/Parallax
+        int GetTextureWidth(const std::string& id);
+        int GetTextureHeight(const std::string& id);
+
         // Font Management
         void LoadFontAsset(const std::string& id, const std::string& filepath);
         Font* GetFont(const std::string& id);

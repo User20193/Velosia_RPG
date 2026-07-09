@@ -51,6 +51,22 @@ namespace Velosia::Engine {
         Core::Logger::Info("ResourceManager: Cleared all textures.");
     }
 
+    int ResourceManager::GetTextureWidth(const std::string& id) {
+        auto it = textures.find(id);
+        if (it != textures.end()) {
+            return it->second.width;
+        }
+        return 0;
+    }
+
+    int ResourceManager::GetTextureHeight(const std::string& id) {
+        auto it = textures.find(id);
+        if (it != textures.end()) {
+            return it->second.height;
+        }
+        return 0;
+    }
+
     void ResourceManager::LoadFontAsset(const std::string& id, const std::string& filepath) {
         if (fonts.find(id) != fonts.end()) return;
 

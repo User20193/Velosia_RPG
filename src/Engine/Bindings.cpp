@@ -132,6 +132,8 @@ PYBIND11_MODULE(velosia_core, m) {
         .def("load_texture", &Velosia::Engine::ResourceManager::LoadTexture, py::arg("id"), py::arg("filepath"))
         .def("unload_texture", &Velosia::Engine::ResourceManager::UnloadTexture, py::arg("id"))
         .def("clear_textures", &Velosia::Engine::ResourceManager::ClearTextures)
+        .def("get_texture_width", &Velosia::Engine::ResourceManager::GetTextureWidth, py::arg("id"))
+        .def("get_texture_height", &Velosia::Engine::ResourceManager::GetTextureHeight, py::arg("id"))
         .def("load_font", &Velosia::Engine::ResourceManager::LoadFontAsset, py::arg("id"), py::arg("filepath"))
         .def("clear_fonts", &Velosia::Engine::ResourceManager::ClearFonts);
 

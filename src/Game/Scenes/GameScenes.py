@@ -46,15 +46,21 @@ class MainMenuScene(Scene):
         res.load_texture("bg_layer1", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer1.png'))
         res.load_texture("bg_layer2", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer2.png'))
         res.load_texture("bg_layer3", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer3.png'))
+        res.load_texture("bg_layer4", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer4.png'))
+        res.load_texture("bg_layer5", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer5.png'))
+        res.load_texture("bg_layer6", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer6.png'))
 
         # Load Custom Font (Updated to TTF with Cyrillic support)
         res.load_font("fantasy_font", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'fonts', 'fantasy.ttf'))
 
         # Setup Parallax system
         self.parallax = ParallaxBackground([
-            ("bg_layer1", 0.2), # Slowest (Sky)
-            ("bg_layer2", 0.5), # Mid
-            ("bg_layer3", 1.0)  # Fastest (Foreground)
+            ("bg_layer1", 0.1), # Slowest (Sky)
+            ("bg_layer2", 0.25),
+            ("bg_layer3", 0.4),
+            ("bg_layer4", 0.6),
+            ("bg_layer5", 0.8),
+            ("bg_layer6", 1.0)  # Fastest (Foreground)
         ])
 
         # Setup Buttons (Translated and centered for 1366 resolution)
@@ -81,7 +87,10 @@ class MainMenuScene(Scene):
         self.parallax.render()
 
         # 2. Draw Title (Centered for 1366 width)
-        velosia_core.RenderSystem.draw_text("fantasy_font", "VELOSIA RPG", 290, 100, 80, 4, 255, 215, 0, 255) # Gold tint
+        # Using approximation: letters are ~40 pixels wide on average for size 80.
+        # "VELOSIA RPG" is 11 chars. 11 * ~40 = 440 width.
+        # Center x = (1366 - 440) / 2 = 463
+        velosia_core.RenderSystem.draw_text("fantasy_font", "VELOSIA RPG", 463, 100, 80, 4, 255, 215, 0, 255) # Gold tint
 
         # 3. Draw Buttons
         self.btn_new_game.render()
