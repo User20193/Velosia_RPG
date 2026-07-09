@@ -15,8 +15,15 @@ namespace Velosia::Engine {
             transform.y += velocity.dy;
 
             // Basic bounding box bounce logic inside C++
-            if (transform.x > 800 || transform.x < 0) velocity.dx *= -1;
-            if (transform.y > 600 || transform.y < 0) velocity.dy *= -1;
+            // Accounts for 32px entity bounds!
+            if (transform.x > 800 - 32 || transform.x < 0) velocity.dx *= -1;
+            if (transform.y > 600 - 32 || transform.y < 0) velocity.dy *= -1;
+
+            // Prevent getting stuck outside bounds
+            if (transform.x < 0) transform.x = 0;
+            if (transform.y < 0) transform.y = 0;
+            if (transform.x > 800 - 32) transform.x = 800 - 32;
+            if (transform.y > 600 - 32) transform.y = 600 - 32;
         }
     }
 

@@ -15,6 +15,10 @@ class GameplayScene(Scene):
         self.entities = DataLoader.load_level(level_path, self.ecs)
 
     def update(self):
+        # 1. Player Input System: modifies velocity based on WASD
+        velosia_core.PlayerInputSystem.update(self.ecs, "Player", 5.0)
+
+        # 2. Movement System: applies velocity to transform
         velosia_core.MovementSystem.update(self.ecs)
 
     def render(self):

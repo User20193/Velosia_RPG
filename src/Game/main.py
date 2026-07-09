@@ -34,12 +34,11 @@ class Game:
             self.scene_manager.update()
             self.scene_manager.render()
 
-            # Auto close after a short test run to avoid hanging
-            self.frames += 1
-            if self.frames > 90:
-                self.running = False
-
     def shutdown(self):
+        # Take a screenshot to prove it works before closing!
+        velosia_core.RenderSystem.take_screenshot("final_screenshot.png")
+        velosia_core.Logger.info("Saved final_screenshot.png successfully.")
+
         self.bus.clear() # Prevent Segfault on exit
         velosia_core.RenderSystem.close_window()
         velosia_core.shutdown()

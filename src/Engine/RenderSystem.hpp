@@ -12,6 +12,8 @@ namespace Velosia::Engine {
         static void BeginDraw();
         static void EndDraw();
 
+        static void TakeScreenshot(const std::string& filename);
+
         // The ECS System: loops through all entities with Transform and draws them
         static void DrawEntities(ECSManager& ecs);
     };

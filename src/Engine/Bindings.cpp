@@ -7,6 +7,8 @@
 #include "RenderSystem.hpp"
 #include "MovementSystem.hpp"
 #include "EventBus.hpp"
+#include "Input.hpp"
+#include "PlayerInputSystem.hpp"
 #include <pybind11/functional.h> // Needed for passing Python functions to std::function
 
 namespace py = pybind11;
@@ -51,6 +53,7 @@ PYBIND11_MODULE(velosia_core, m) {
         .def_static("should_close", &Velosia::Engine::RenderSystem::ShouldClose)
         .def_static("begin_draw", &Velosia::Engine::RenderSystem::BeginDraw)
         .def_static("end_draw", &Velosia::Engine::RenderSystem::EndDraw)
+        .def_static("take_screenshot", &Velosia::Engine::RenderSystem::TakeScreenshot, py::arg("filename"))
         .def_static("draw_entities", &Velosia::Engine::RenderSystem::DrawEntities);
 
     py::class_<Velosia::Engine::MovementSystem>(m, "MovementSystem")
@@ -62,6 +65,30 @@ PYBIND11_MODULE(velosia_core, m) {
         .def("subscribe", &Velosia::Engine::EventBus::Subscribe)
         .def("emit", &Velosia::Engine::EventBus::Emit, py::arg("event_type"), py::arg("payload") = "")
         .def("clear", &Velosia::Engine::EventBus::Clear);
+
+    // Input System
+    py::enum_<Velosia::Engine::Input::Key>(m, "Key")
+        .value("W", Velosia::Engine::Input::Key::W)
+        .value("A", Velosia::Engine::Input::Key::A)
+        .value("S", Velosia::Engine::Input::Key::S)
+        .value("D", Velosia::Engine::Input::Key::D)
+        .value("UP", Velosia::Engine::Input::Key::UP)
+        .value("DOWN", Velosia::Engine::Input::Key::DOWN)
+        .value("LEFT", Velosia::Engine::Input::Key::LEFT)
+        .value("RIGHT", Velosia::Engine::Input::Key::RIGHT)
+        .value("SPACE", Velosia::Engine::Input::Key::SPACE)
+        .value("ENTER", Velosia::Engine::Input::Key::ENTER)
+        .value("ESCAPE", Velosia::Engine::Input::Key::ESCAPE)
+        .export_values();
+
+    py::class_<Velosia::Engine::Input>(m, "Input")
+        .def_static("is_key_pressed", &Velosia::Engine::Input::IsKeyPressed)
+        .def_static("is_key_down", &Velosia::Engine::Input::IsKeyDown)
+        .def_static("is_key_released", &Velosia::Engine::Input::IsKeyReleased)
+        .def_static("is_key_up", &Velosia::Engine::Input::IsKeyUp);
+
+    py::class_<Velosia::Engine::PlayerInputSystem>(m, "PlayerInputSystem")
+        .def_static("update", &Velosia::Engine::PlayerInputSystem::Update, py::arg("ecs"), py::arg("player_tag"), py::arg("speed"));
 
     py::class_<Velosia::Engine::ECSManager>(m, "ECSManager")
         .def(py::init<>())

@@ -8,18 +8,40 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Build as a shared library for Python
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Find Python and Pybind11
+# Find Python
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-add_subdirectory(third_party/pybind11)
 
-# EnTT (Header only)
-add_library(entt INTERFACE)
-target_include_directories(entt INTERFACE third_party)
+# Use FetchContent for universal dependency management
+include(FetchContent)
+
+# Pybind11
+FetchContent_Declare(
+  pybind11
+  GIT_REPOSITORY https://github.com/pybind/pybind11.git
+  GIT_TAG        v3.0.0
+)
+FetchContent_MakeAvailable(pybind11)
+
+# EnTT
+FetchContent_Declare(
+  entt
+  GIT_REPOSITORY https://github.com/skypjack/entt.git
+  GIT_TAG        v3.13.0
+)
+FetchContent_MakeAvailable(entt)
+
+# We need to manually add EnTT include dirs since it might not expose a target correctly depending on the branch/version
+include_directories(${entt_SOURCE_DIR}/single_include/entt)
 
 # Raylib
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(third_party/raylib)
+FetchContent_Declare(
+  raylib
+  GIT_REPOSITORY https://github.com/raysan5/raylib.git
+  GIT_TAG        5.0
+)
+FetchContent_MakeAvailable(raylib)
 
 # Core Library
 add_library(Core
@@ -35,6 +57,7 @@ pybind11_add_module(velosia_core
     src/Engine/Bindings.cpp
     src/Engine/RenderSystem.cpp
     src/Engine/MovementSystem.cpp
+    src/Engine/PlayerInputSystem.cpp
 )
 
-target_link_libraries(velosia_core PRIVATE Core entt raylib)
+target_link_libraries(velosia_core PRIVATE Core EnTT::EnTT raylib)

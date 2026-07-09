@@ -15,6 +15,10 @@ namespace Velosia::Engine {
     }
     void RenderSystem::EndDraw() { EndDrawing(); }
 
+    void RenderSystem::TakeScreenshot(const std::string& filename) {
+        ::TakeScreenshot(filename.c_str());
+    }
+
     void RenderSystem::DrawEntities(ECSManager& ecs) {
         auto view = ecs.GetRegistry().view<TransformComponent>();
         for (auto entity : view) {
