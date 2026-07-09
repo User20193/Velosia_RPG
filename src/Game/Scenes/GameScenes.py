@@ -81,7 +81,7 @@ class MainMenuScene(Scene):
         self.parallax.render()
 
         # 2. Draw Title (Centered for 1366 width)
-        velosia_core.RenderSystem.draw_text("fantasy_font", "VELOSIA RPG", 450, 100, 80, 4, 255, 215, 0, 255) # Gold tint
+        velosia_core.RenderSystem.draw_text("fantasy_font", "VELOSIA RPG", 290, 100, 80, 4, 255, 215, 0, 255) # Gold tint
 
         # 3. Draw Buttons
         self.btn_new_game.render()
