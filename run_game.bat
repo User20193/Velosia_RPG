@@ -36,10 +36,11 @@ echo [INFO] Configuring CMake...
 gcc --version >nul 2>&1
 if %errorlevel% equ 0 (
     echo [INFO] GCC detected. Using MinGW Makefiles.
-    cmake .. -G "MinGW Makefiles"
+    :: -DCMAKE_POLICY_VERSION_MINIMUM=3.5 prevents errors with newer CMake versions when compiling third-party libraries (like Raylib) that have old minimum version requirements.
+    cmake .. -G "MinGW Makefiles" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 ) else (
     echo [INFO] GCC not detected. Using default generator.
-    cmake ..
+    cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 )
 
 if %errorlevel% neq 0 (
