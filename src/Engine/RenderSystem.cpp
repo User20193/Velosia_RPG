@@ -45,9 +45,17 @@ namespace Velosia::Engine {
         BeginDrawing();
         ClearBackground(BLACK);
 
+        int internalWidth = DisplayManager::GetInternalWidth();
+        int internalHeight = DisplayManager::GetInternalHeight();
+
+        if (internalWidth <= 0 || internalHeight <= 0) {
+            EndDrawing();
+            return;
+        }
+
         float scale = std::min(
-            (float)GetScreenWidth() / DisplayManager::GetInternalWidth(),
-            (float)GetScreenHeight() / DisplayManager::GetInternalHeight()
+            (float)GetScreenWidth() / internalWidth,
+            (float)GetScreenHeight() / internalHeight
         );
 
         Rectangle sourceRec = { 0.0f, 0.0f, (float)targetCanvas.texture.width, (float)-targetCanvas.texture.height };

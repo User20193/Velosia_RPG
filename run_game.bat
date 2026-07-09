@@ -31,13 +31,18 @@ cd build
 
 :: Run CMake Configuration
 echo [INFO] Configuring CMake...
+:: Try configuring default (usually MSVC if installed), otherwise fallback to MinGW Makefiles if GCC is used
 cmake ..
 if %errorlevel% neq 0 (
-    echo.
-    echo [ERROR] CMake configuration failed!
-    echo Please ensure you have a C++ Compiler installed (Visual Studio Community).
-    pause
-    exit /b 1
+    echo [WARN] Default generator failed. Attempting MinGW Makefiles...
+    cmake .. -G "MinGW Makefiles"
+    if %errorlevel% neq 0 (
+        echo.
+        echo [ERROR] CMake configuration failed!
+        echo Please ensure you have a C++ Compiler installed and in your PATH ^(e.g., MinGW-w64 or MSVC^).
+        pause
+        exit /b 1
+    )
 )
 
 :: Build the Engine
