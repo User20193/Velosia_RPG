@@ -1,3 +1,4 @@
+#include <algorithm> // Required for std::copy_n in newer GCC versions (GCC 16+)
 #include <pybind11/pybind11.h>
 #include "Logger.hpp"
 #include "PAL.hpp"
