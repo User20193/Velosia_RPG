@@ -34,6 +34,7 @@ target_include_directories(Core PUBLIC src/Core)
 pybind11_add_module(velosia_core
     src/Engine/Bindings.cpp
     src/Engine/RenderSystem.cpp
+    src/Engine/MovementSystem.cpp
 )
 
 target_link_libraries(velosia_core PRIVATE Core entt raylib)

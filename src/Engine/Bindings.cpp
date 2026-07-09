@@ -5,6 +5,9 @@
 #include "ECSManager.hpp"
 #include "Components.hpp"
 #include "RenderSystem.hpp"
+#include "MovementSystem.hpp"
+#include "EventBus.hpp"
+#include <pybind11/functional.h> // Needed for passing Python functions to std::function
 
 namespace py = pybind11;
 
@@ -49,6 +52,16 @@ PYBIND11_MODULE(velosia_core, m) {
         .def_static("begin_draw", &Velosia::Engine::RenderSystem::BeginDraw)
         .def_static("end_draw", &Velosia::Engine::RenderSystem::EndDraw)
         .def_static("draw_entities", &Velosia::Engine::RenderSystem::DrawEntities);
+
+    py::class_<Velosia::Engine::MovementSystem>(m, "MovementSystem")
+        .def_static("update", &Velosia::Engine::MovementSystem::Update);
+
+    // Event Bus
+    py::class_<Velosia::Engine::EventBus>(m, "EventBus")
+        .def_static("get_instance", &Velosia::Engine::EventBus::GetInstance, py::return_value_policy::reference)
+        .def("subscribe", &Velosia::Engine::EventBus::Subscribe)
+        .def("emit", &Velosia::Engine::EventBus::Emit, py::arg("event_type"), py::arg("payload") = "")
+        .def("clear", &Velosia::Engine::EventBus::Clear);
 
     py::class_<Velosia::Engine::ECSManager>(m, "ECSManager")
         .def(py::init<>())
