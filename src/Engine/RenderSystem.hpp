@@ -9,8 +9,8 @@ namespace Velosia::Engine {
         static void CloseWindow();
         static bool ShouldClose();
 
-        static void BeginDraw();
-        static void EndDraw();
+        static void BeginDraw(); // Begins drawing to the internal canvas
+        static void EndDraw();   // Finishes internal drawing, scales, and draws to the external window
 
         static void TakeScreenshot(const std::string& filename);
 

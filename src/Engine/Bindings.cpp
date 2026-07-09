@@ -9,6 +9,7 @@
 #include "EventBus.hpp"
 #include "Input.hpp"
 #include "PlayerInputSystem.hpp"
+#include "DisplayManager.hpp"
 #include <pybind11/functional.h> // Needed for passing Python functions to std::function
 
 namespace py = pybind11;
@@ -89,6 +90,16 @@ PYBIND11_MODULE(velosia_core, m) {
 
     py::class_<Velosia::Engine::PlayerInputSystem>(m, "PlayerInputSystem")
         .def_static("update", &Velosia::Engine::PlayerInputSystem::Update, py::arg("ecs"), py::arg("player_tag"), py::arg("speed"));
+
+    py::class_<Velosia::Engine::DisplayManager>(m, "DisplayManager")
+        .def_static("set_internal_resolution", &Velosia::Engine::DisplayManager::SetInternalResolution)
+        .def_static("set_window_size", &Velosia::Engine::DisplayManager::SetWindowSize)
+        .def_static("toggle_fullscreen", &Velosia::Engine::DisplayManager::ToggleFullscreen)
+        .def_static("set_borderless", &Velosia::Engine::DisplayManager::SetBorderless)
+        .def_static("get_internal_width", &Velosia::Engine::DisplayManager::GetInternalWidth)
+        .def_static("get_internal_height", &Velosia::Engine::DisplayManager::GetInternalHeight)
+        .def_static("get_window_width", &Velosia::Engine::DisplayManager::GetWindowWidth)
+        .def_static("get_window_height", &Velosia::Engine::DisplayManager::GetWindowHeight);
 
     py::class_<Velosia::Engine::ECSManager>(m, "ECSManager")
         .def(py::init<>())

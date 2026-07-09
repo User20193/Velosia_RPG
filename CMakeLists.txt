@@ -58,6 +58,7 @@ pybind11_add_module(velosia_core
     src/Engine/RenderSystem.cpp
     src/Engine/MovementSystem.cpp
     src/Engine/PlayerInputSystem.cpp
+    src/Engine/DisplayManager.cpp
 )
 
 target_link_libraries(velosia_core PRIVATE Core EnTT::EnTT raylib)
