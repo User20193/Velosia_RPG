@@ -1,7 +1,15 @@
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'build'))
+# Resolve the absolute path to the build directory robustly
+current_dir = os.path.dirname(os.path.abspath(__file__))
+build_dir = os.path.abspath(os.path.join(current_dir, '..', '..', 'build'))
+
+# Insert at the beginning of sys.path to ensure it takes precedence
+sys.path.insert(0, build_dir)
+sys.path.insert(0, os.path.join(build_dir, 'Release'))
+sys.path.insert(0, os.path.join(build_dir, 'Debug'))
+
 import velosia_core
 from Scripts.SceneManager import SceneManager
 from Scenes.GameScenes import MainMenuScene
