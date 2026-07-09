@@ -41,27 +41,14 @@ class MainMenuScene(Scene):
     def load(self):
         velosia_core.Logger.info("MainMenuScene: Loading...")
 
-        # Load Parallax assets (switching to fantasy backgrounds)
+        # Parallax assets are currently deferred.
         res = velosia_core.ResourceManager.get_instance()
-        res.load_texture("bg_layer1", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer1.png'))
-        res.load_texture("bg_layer2", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer2.png'))
-        res.load_texture("bg_layer3", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer3.png'))
-        res.load_texture("bg_layer4", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer4.png'))
-        res.load_texture("bg_layer5", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer5.png'))
-        res.load_texture("bg_layer6", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer6.png'))
 
         # Load Custom Font (Updated to TTF with Cyrillic support)
         res.load_font("fantasy_font", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'fonts', 'fantasy.ttf'))
 
-        # Setup Parallax system
-        self.parallax = ParallaxBackground([
-            ("bg_layer1", 0.1), # Slowest (Sky)
-            ("bg_layer2", 0.25),
-            ("bg_layer3", 0.4),
-            ("bg_layer4", 0.6),
-            ("bg_layer5", 0.8),
-            ("bg_layer6", 1.0)  # Fastest (Foreground)
-        ])
+        # Setup Parallax system deferred for now
+        # self.parallax = ParallaxBackground([...])
 
         # Setup Buttons (Translated and centered for 1366 resolution)
         self.btn_new_game = UIButton(600, 350, 150, 30, "ИГРАТЬ", "fantasy_font")
@@ -69,8 +56,8 @@ class MainMenuScene(Scene):
         self.btn_exit = UIButton(600, 490, 150, 30, "ВЫХОД", "fantasy_font")
 
     def update(self):
-        # Update parallax
-        self.parallax.update(1.0) # Delta scroll
+        # Parallax update deferred
+        # self.parallax.update(1.0) # Delta scroll
 
         # Check Buttons
         if self.btn_new_game.update():
@@ -83,8 +70,7 @@ class MainMenuScene(Scene):
     def render(self):
         velosia_core.RenderSystem.begin_draw()
 
-        # 1. Draw Background
-        self.parallax.render()
+        # 1. Background (Parallax deferred, Raylib clears screen to black by default)
 
         # 2. Draw Title (Centered for 1366 width)
         # Using approximation: letters are ~40 pixels wide on average for size 80.
