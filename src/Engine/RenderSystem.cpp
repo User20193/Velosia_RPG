@@ -1,6 +1,7 @@
 #include "RenderSystem.hpp"
 #include "Components.hpp"
 #include "DisplayManager.hpp"
+#include "ResourceManager.hpp"
 #include <raylib.h>
 #include <algorithm>
 
@@ -66,11 +67,37 @@ namespace Velosia::Engine {
     }
 
     void RenderSystem::DrawEntities(ECSManager& ecs) {
-        auto view = ecs.GetRegistry().view<TransformComponent>();
-        for (auto entity : view) {
-            auto& transform = view.get<TransformComponent>(entity);
-            // Draw a simple 32x32 colored square as a placeholder
+        // Fallback: draw red rectangle if only transform exists
+        auto viewRect = ecs.GetRegistry().view<TransformComponent>(entt::exclude<SpriteComponent>);
+        for (auto entity : viewRect) {
+            auto& transform = viewRect.get<TransformComponent>(entity);
             DrawRectangle(static_cast<int>(transform.x), static_cast<int>(transform.y), 32, 32, RED);
+        }
+
+        // Draw proper sprites if SpriteComponent exists
+        auto viewSprite = ecs.GetRegistry().view<TransformComponent, SpriteComponent>();
+        for (auto entity : viewSprite) {
+            auto& transform = viewSprite.get<TransformComponent>(entity);
+            auto& sprite = viewSprite.get<SpriteComponent>(entity);
+
+            Texture2D* tex = ResourceManager::GetInstance().GetTexture(sprite.textureId);
+            if (tex != nullptr) {
+                Rectangle sourceRec = {
+                    (float)sprite.srcX, (float)sprite.srcY,
+                    (float)sprite.srcWidth, (float)sprite.srcHeight
+                };
+                Rectangle destRec = {
+                    transform.x, transform.y,
+                    sprite.srcWidth * sprite.scale, sprite.srcHeight * sprite.scale
+                };
+                Vector2 origin = { 0.0f, 0.0f }; // Top-left origin
+                Color tint = { sprite.tintR, sprite.tintG, sprite.tintB, sprite.tintA };
+
+                DrawTexturePro(*tex, sourceRec, destRec, origin, 0.0f, tint);
+            } else {
+                // Fallback to magenta rectangle if texture missing
+                DrawRectangle(static_cast<int>(transform.x), static_cast<int>(transform.y), sprite.srcWidth, sprite.srcHeight, MAGENTA);
+            }
         }
     }
 }

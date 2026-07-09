@@ -40,8 +40,9 @@ class Game:
         velosia_core.Logger.info("Saved final_screenshot.png successfully.")
 
         self.bus.clear() # Prevent Segfault on exit
-        velosia_core.RenderSystem.close_window()
+        # CRITICAL FIX: Shutdown C++ Core (which unloads VRAM textures) BEFORE destroying the OpenGL context via close_window!
         velosia_core.shutdown()
+        velosia_core.RenderSystem.close_window()
 
 if __name__ == "__main__":
     game = Game()

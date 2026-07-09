@@ -10,6 +10,7 @@
 #include "Input.hpp"
 #include "PlayerInputSystem.hpp"
 #include "DisplayManager.hpp"
+#include "ResourceManager.hpp"
 #include <pybind11/functional.h> // Needed for passing Python functions to std::function
 
 namespace py = pybind11;
@@ -24,6 +25,9 @@ PYBIND11_MODULE(velosia_core, m) {
     });
 
     m.def("shutdown", []() {
+        // Essential: Unload VRAM assets before Window is fully closed/OpenGL context destroyed
+        Velosia::Engine::ResourceManager::GetInstance().ClearTextures();
+
         Velosia::Core::PAL::Shutdown();
         Velosia::Core::Memory::Shutdown();
     });
@@ -47,6 +51,19 @@ PYBIND11_MODULE(velosia_core, m) {
     py::class_<Velosia::Engine::TagComponent>(m, "TagComponent")
         .def(py::init<>())
         .def_readwrite("tag", &Velosia::Engine::TagComponent::tag);
+
+    py::class_<Velosia::Engine::SpriteComponent>(m, "SpriteComponent")
+        .def(py::init<>())
+        .def_readwrite("texture_id", &Velosia::Engine::SpriteComponent::textureId)
+        .def_readwrite("scale", &Velosia::Engine::SpriteComponent::scale)
+        .def_readwrite("src_x", &Velosia::Engine::SpriteComponent::srcX)
+        .def_readwrite("src_y", &Velosia::Engine::SpriteComponent::srcY)
+        .def_readwrite("src_width", &Velosia::Engine::SpriteComponent::srcWidth)
+        .def_readwrite("src_height", &Velosia::Engine::SpriteComponent::srcHeight)
+        .def_readwrite("tint_r", &Velosia::Engine::SpriteComponent::tintR)
+        .def_readwrite("tint_g", &Velosia::Engine::SpriteComponent::tintG)
+        .def_readwrite("tint_b", &Velosia::Engine::SpriteComponent::tintB)
+        .def_readwrite("tint_a", &Velosia::Engine::SpriteComponent::tintA);
 
     py::class_<Velosia::Engine::RenderSystem>(m, "RenderSystem")
         .def_static("init_window", &Velosia::Engine::RenderSystem::InitWindow)
@@ -91,6 +108,12 @@ PYBIND11_MODULE(velosia_core, m) {
     py::class_<Velosia::Engine::PlayerInputSystem>(m, "PlayerInputSystem")
         .def_static("update", &Velosia::Engine::PlayerInputSystem::Update, py::arg("ecs"), py::arg("player_tag"), py::arg("speed"));
 
+    py::class_<Velosia::Engine::ResourceManager>(m, "ResourceManager")
+        .def_static("get_instance", &Velosia::Engine::ResourceManager::GetInstance, py::return_value_policy::reference)
+        .def("load_texture", &Velosia::Engine::ResourceManager::LoadTexture, py::arg("id"), py::arg("filepath"))
+        .def("unload_texture", &Velosia::Engine::ResourceManager::UnloadTexture, py::arg("id"))
+        .def("clear_textures", &Velosia::Engine::ResourceManager::ClearTextures);
+
     py::class_<Velosia::Engine::DisplayManager>(m, "DisplayManager")
         .def_static("set_internal_resolution", &Velosia::Engine::DisplayManager::SetInternalResolution)
         .def_static("set_window_size", &Velosia::Engine::DisplayManager::SetWindowSize)
@@ -126,5 +149,12 @@ PYBIND11_MODULE(velosia_core, m) {
         })
         .def("get_tag", [](Velosia::Engine::ECSManager& self, uint32_t entity) {
             return &self.GetRegistry().get<Velosia::Engine::TagComponent>(static_cast<entt::entity>(entity));
+        }, py::return_value_policy::reference)
+        .def("add_sprite", [](Velosia::Engine::ECSManager& self, uint32_t entity, const std::string& textureId) {
+            auto& comp = self.GetRegistry().emplace<Velosia::Engine::SpriteComponent>(static_cast<entt::entity>(entity));
+            comp.textureId = textureId;
+        })
+        .def("get_sprite", [](Velosia::Engine::ECSManager& self, uint32_t entity) {
+            return &self.GetRegistry().get<Velosia::Engine::SpriteComponent>(static_cast<entt::entity>(entity));
         }, py::return_value_policy::reference);
 }

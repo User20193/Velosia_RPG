@@ -19,6 +19,13 @@ class DataLoader:
         ecs_manager.add_transform(player, player_data.get("start_x", 0), player_data.get("start_y", 0))
         ecs_manager.add_velocity(player, 0, 0) # Player moves via input
 
+        if "texture_id" in player_data:
+            ecs_manager.add_sprite(player, player_data["texture_id"])
+            sprite = ecs_manager.get_sprite(player)
+            sprite.src_width = 256 # Match placeholder asset size
+            sprite.src_height = 256
+            sprite.scale = 0.25 # Scale down to ~64px
+
         entities = {"player": player, "enemies": []}
 
         # Spawn Enemies
@@ -27,6 +34,17 @@ class DataLoader:
             ecs_manager.add_tag(enemy, enemy_data.get("tag", "Enemy"))
             ecs_manager.add_transform(enemy, enemy_data.get("start_x", 0), enemy_data.get("start_y", 0))
             ecs_manager.add_velocity(enemy, enemy_data.get("speed_x", 0), enemy_data.get("speed_y", 0))
+
+            if "texture_id" in enemy_data:
+                ecs_manager.add_sprite(enemy, enemy_data["texture_id"])
+                sprite = ecs_manager.get_sprite(enemy)
+                sprite.src_width = 256
+                sprite.src_height = 256
+                sprite.scale = 0.25
+                # Tint enemies red to distinguish them from the player
+                sprite.tint_g = 100
+                sprite.tint_b = 100
+
             entities["enemies"].append(enemy)
 
         velosia_core.Logger.info(f"Loaded level from {filepath} with {len(entities['enemies'])} enemies.")

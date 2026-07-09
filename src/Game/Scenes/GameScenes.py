@@ -1,4 +1,9 @@
 import os
+import sys
+
+# Ensure Python can find local Game modules
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 import velosia_core
 from Scripts.SceneManager import Scene
 from Scripts.DataLoader import DataLoader
@@ -10,6 +15,10 @@ class GameplayScene(Scene):
         # We can use the Event Bus to notify UI or Audio systems
         bus = velosia_core.EventBus.get_instance()
         bus.emit("SceneChanged", "Gameplay")
+
+        # We must load the texture into the ResourceManager before Data-loader asks for it!
+        img_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'sprites', 'hero.png')
+        velosia_core.ResourceManager.get_instance().load_texture("hero_tex", img_path)
 
         level_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'data', 'level_01.json')
         self.entities = DataLoader.load_level(level_path, self.ecs)

@@ -3,7 +3,8 @@
         "start_x": 400,
         "start_y": 300,
         "speed": 5,
-        "tag": "Player"
+        "tag": "Player",
+        "texture_id": "hero_tex"
     },
     "enemies": [
         {
@@ -12,7 +13,8 @@
             "start_y": 100,
             "speed_x": 2,
             "speed_y": 3,
-            "tag": "Enemy_Goblin"
+            "tag": "Enemy_Goblin",
+            "texture_id": "hero_tex"
         },
         {
             "type": "Orc",
@@ -20,7 +22,8 @@
             "start_y": 500,
             "speed_x": -3,
             "speed_y": -2,
-            "tag": "Enemy_Orc"
+            "tag": "Enemy_Orc",
+            "texture_id": "hero_tex"
         }
     ]
 }
