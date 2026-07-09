@@ -66,6 +66,6 @@ pybind11_add_module(velosia_core
 target_link_libraries(velosia_core PRIVATE Core EnTT::EnTT raylib)
 
 # Statically link libgcc and libstdc++ on MinGW to prevent "DLL load failed" in Python
-if(MINGW OR CMAKE_COMPILER_IS_GNUCXX)
+if(MINGW)
     target_link_options(velosia_core PRIVATE -static -static-libgcc -static-libstdc++)
 endif()

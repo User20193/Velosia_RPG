@@ -10,25 +10,31 @@ class ParallaxBackground:
         self.scroll_offsets = [0.0 for _ in self.layers]
 
     def update(self, delta_scroll):
+        # We assume the texture width exactly matches the internal window width (e.g., 1366)
+        width = velosia_core.DisplayManager.get_internal_width()
+
         for i, (_, speed) in enumerate(self.layers):
             self.scroll_offsets[i] -= delta_scroll * speed
 
-            # Reset offset for infinite scrolling
-            # Note: For this to be seamless, the texture must be seamless!
-            tex = velosia_core.ResourceManager.get_instance()
-            # For simplicity, assuming the texture is wide enough (e.g., internal width)
-            width = velosia_core.DisplayManager.get_internal_width()
-
-            if self.scroll_offsets[i] <= -width:
-                self.scroll_offsets[i] = 0
+            # CRITICAL FIX for the white gap: Use modulo math to guarantee the offset never mathematically skips a pixel
+            # We want the offset to strictly loop between 0 and -width
+            self.scroll_offsets[i] = self.scroll_offsets[i] % width
+            if self.scroll_offsets[i] > 0:
+                self.scroll_offsets[i] -= width
 
     def render(self):
         width = velosia_core.DisplayManager.get_internal_width()
+        height = velosia_core.DisplayManager.get_internal_height()
+
         for i, (tex_id, _) in enumerate(self.layers):
             offset = self.scroll_offsets[i]
+            # Calculate scale to ensure the texture fills the entire screen height
+            # (Assuming texture height is 768, scale will be 1.0, but this makes it robust)
+            # For now, since we generated exactly 1366x768, scale 1.0 is perfect.
+
             # Draw first copy
             velosia_core.RenderSystem.draw_texture(tex_id, offset, 0, 1.0)
-            # Draw second copy trailing immediately behind it for the seamless loop
+            # Draw second copy trailing perfectly behind it for the seamless loop
             velosia_core.RenderSystem.draw_texture(tex_id, offset + width, 0, 1.0)
 
 class UIButton:

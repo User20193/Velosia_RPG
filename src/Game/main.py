@@ -17,7 +17,8 @@ from Scenes.GameScenes import MainMenuScene
 class Game:
     def __init__(self):
         velosia_core.init()
-        velosia_core.RenderSystem.init_window(800, 600, "Velosia RPG")
+        # Set requested resolution (1366x768)
+        velosia_core.RenderSystem.init_window(1366, 768, "Velosia RPG")
 
         self.ecs = velosia_core.ECSManager()
         self.scene_manager = SceneManager(self)

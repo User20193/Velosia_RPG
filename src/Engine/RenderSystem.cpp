@@ -36,7 +36,8 @@ namespace Velosia::Engine {
         }
 
         BeginTextureMode(targetCanvas);
-        ClearBackground(RAYWHITE);
+        // User requested removing the "white void". Changing to BLACK.
+        ClearBackground(BLACK);
     }
 
     void RenderSystem::EndDraw() {

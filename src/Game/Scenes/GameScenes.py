@@ -41,14 +41,14 @@ class MainMenuScene(Scene):
     def load(self):
         velosia_core.Logger.info("MainMenuScene: Loading...")
 
-        # Load Parallax assets
+        # Load Parallax assets (switching to fantasy backgrounds)
         res = velosia_core.ResourceManager.get_instance()
-        res.load_texture("bg_layer1", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'ui', 'parallax', 'layer1.png'))
-        res.load_texture("bg_layer2", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'ui', 'parallax', 'layer2.png'))
-        res.load_texture("bg_layer3", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'ui', 'parallax', 'layer3.png'))
+        res.load_texture("bg_layer1", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer1.png'))
+        res.load_texture("bg_layer2", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer2.png'))
+        res.load_texture("bg_layer3", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'bg_layer3.png'))
 
-        # Load Custom Font
-        res.load_font("fantasy_font", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'fonts', 'custom_alagard.png'))
+        # Load Custom Font (Updated to TTF with Cyrillic support)
+        res.load_font("fantasy_font", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'fonts', 'fantasy.ttf'))
 
         # Setup Parallax system
         self.parallax = ParallaxBackground([
@@ -57,10 +57,10 @@ class MainMenuScene(Scene):
             ("bg_layer3", 1.0)  # Fastest (Foreground)
         ])
 
-        # Setup Buttons
-        self.btn_new_game = UIButton(250, 180, 150, 30, "NEW GAME", "fantasy_font")
-        self.btn_settings = UIButton(250, 230, 150, 30, "SETTINGS", "fantasy_font")
-        self.btn_exit = UIButton(250, 280, 150, 30, "EXIT", "fantasy_font")
+        # Setup Buttons (Translated and centered for 1366 resolution)
+        self.btn_new_game = UIButton(600, 350, 150, 30, "ИГРАТЬ", "fantasy_font")
+        self.btn_settings = UIButton(600, 420, 150, 30, "НАСТРОЙКИ", "fantasy_font")
+        self.btn_exit = UIButton(600, 490, 150, 30, "ВЫХОД", "fantasy_font")
 
     def update(self):
         # Update parallax
@@ -80,8 +80,8 @@ class MainMenuScene(Scene):
         # 1. Draw Background
         self.parallax.render()
 
-        # 2. Draw Title
-        velosia_core.RenderSystem.draw_text("fantasy_font", "VELOSIA RPG", 150, 50, 60, 4, 255, 215, 0, 255) # Gold tint
+        # 2. Draw Title (Centered for 1366 width)
+        velosia_core.RenderSystem.draw_text("fantasy_font", "VELOSIA RPG", 450, 100, 80, 4, 255, 215, 0, 255) # Gold tint
 
         # 3. Draw Buttons
         self.btn_new_game.render()

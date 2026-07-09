@@ -54,10 +54,29 @@ namespace Velosia::Engine {
     void ResourceManager::LoadFontAsset(const std::string& id, const std::string& filepath) {
         if (fonts.find(id) != fonts.end()) return;
 
-        Font font = ::LoadFont(filepath.c_str());
+        // Load font with Cyrillic support (UTF-8 mapping)
+        // Raylib's default LoadFont only maps basic ASCII. For TTF files with Cyrillic,
+        // we must use LoadFontEx and provide an array of codepoints.
+        // We will load the basic ASCII + Cyrillic block (0x0400 to 0x04FF)
+
+        int codepointCount = 512;
+        int* codepoints = new int[codepointCount];
+        int idx = 0;
+
+        // Basic Latin (ASCII)
+        for (int i = 32; i < 127; i++) codepoints[idx++] = i;
+        // Cyrillic
+        for (int i = 0x0400; i < 0x04FF; i++) codepoints[idx++] = i;
+
+        // Fill the rest with 0 just in case
+        while (idx < codepointCount) codepoints[idx++] = 0;
+
+        Font font = ::LoadFontEx(filepath.c_str(), 64, codepoints, codepointCount);
+        delete[] codepoints;
+
         if (font.texture.id > 0) {
             fonts[id] = font;
-            Core::Logger::Info("ResourceManager: Loaded font '" + id + "'");
+            Core::Logger::Info("ResourceManager: Loaded font '" + id + "' with Cyrillic support");
         } else {
             Core::Logger::Error("ResourceManager: Failed to load font '" + id + "'");
         }
