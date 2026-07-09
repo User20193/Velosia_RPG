@@ -66,6 +66,27 @@ namespace Velosia::Engine {
         ::TakeScreenshot(filename.c_str());
     }
 
+    void RenderSystem::DrawTexture(const std::string& textureId, float x, float y, float scale, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+        Texture2D* tex = ResourceManager::GetInstance().GetTexture(textureId);
+        if (tex != nullptr) {
+            Color tint = { r, g, b, a };
+            DrawTextureEx(*tex, {x, y}, 0.0f, scale, tint);
+        } else {
+             // Silently fail if texture missing for UI flexibility or we can log it if needed
+        }
+    }
+
+    void RenderSystem::DrawText(const std::string& fontId, const std::string& text, float x, float y, float fontSize, float spacing, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+        Font* font = ResourceManager::GetInstance().GetFont(fontId);
+        Color tint = { r, g, b, a };
+        if (font != nullptr) {
+            DrawTextEx(*font, text.c_str(), {x, y}, fontSize, spacing, tint);
+        } else {
+            // Fallback to default raylib font
+            ::DrawText(text.c_str(), static_cast<int>(x), static_cast<int>(y), static_cast<int>(fontSize), tint);
+        }
+    }
+
     void RenderSystem::DrawEntities(ECSManager& ecs) {
         // Fallback: draw red rectangle if only transform exists
         auto viewRect = ecs.GetRegistry().view<TransformComponent>(entt::exclude<SpriteComponent>);

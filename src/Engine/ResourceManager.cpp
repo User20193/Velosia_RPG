@@ -5,6 +5,7 @@ namespace Velosia::Engine {
 
     ResourceManager::~ResourceManager() {
         ClearTextures();
+        ClearFonts();
     }
 
     void ResourceManager::LoadTexture(const std::string& id, const std::string& filepath) {
@@ -48,6 +49,31 @@ namespace Velosia::Engine {
         }
         textures.clear();
         Core::Logger::Info("ResourceManager: Cleared all textures.");
+    }
+
+    void ResourceManager::LoadFontAsset(const std::string& id, const std::string& filepath) {
+        if (fonts.find(id) != fonts.end()) return;
+
+        Font font = ::LoadFont(filepath.c_str());
+        if (font.texture.id > 0) {
+            fonts[id] = font;
+            Core::Logger::Info("ResourceManager: Loaded font '" + id + "'");
+        } else {
+            Core::Logger::Error("ResourceManager: Failed to load font '" + id + "'");
+        }
+    }
+
+    Font* ResourceManager::GetFont(const std::string& id) {
+        auto it = fonts.find(id);
+        if (it != fonts.end()) return &it->second;
+        return nullptr;
+    }
+
+    void ResourceManager::ClearFonts() {
+        for (auto& pair : fonts) {
+            ::UnloadFont(pair.second);
+        }
+        fonts.clear();
     }
 
 }

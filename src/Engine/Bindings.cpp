@@ -27,6 +27,7 @@ PYBIND11_MODULE(velosia_core, m) {
     m.def("shutdown", []() {
         // Essential: Unload VRAM assets before Window is fully closed/OpenGL context destroyed
         Velosia::Engine::ResourceManager::GetInstance().ClearTextures();
+        Velosia::Engine::ResourceManager::GetInstance().ClearFonts();
 
         Velosia::Core::PAL::Shutdown();
         Velosia::Core::Memory::Shutdown();
@@ -72,6 +73,12 @@ PYBIND11_MODULE(velosia_core, m) {
         .def_static("begin_draw", &Velosia::Engine::RenderSystem::BeginDraw)
         .def_static("end_draw", &Velosia::Engine::RenderSystem::EndDraw)
         .def_static("take_screenshot", &Velosia::Engine::RenderSystem::TakeScreenshot, py::arg("filename"))
+        .def_static("draw_texture", &Velosia::Engine::RenderSystem::DrawTexture,
+                    py::arg("texture_id"), py::arg("x"), py::arg("y"), py::arg("scale"),
+                    py::arg("r")=255, py::arg("g")=255, py::arg("b")=255, py::arg("a")=255)
+        .def_static("draw_text", &Velosia::Engine::RenderSystem::DrawText,
+                    py::arg("font_id"), py::arg("text"), py::arg("x"), py::arg("y"), py::arg("font_size"), py::arg("spacing"),
+                    py::arg("r")=255, py::arg("g")=255, py::arg("b")=255, py::arg("a")=255)
         .def_static("draw_entities", &Velosia::Engine::RenderSystem::DrawEntities);
 
     py::class_<Velosia::Engine::MovementSystem>(m, "MovementSystem")
@@ -99,11 +106,22 @@ PYBIND11_MODULE(velosia_core, m) {
         .value("ESCAPE", Velosia::Engine::Input::Key::ESCAPE)
         .export_values();
 
+    py::enum_<Velosia::Engine::Input::MouseButton>(m, "MouseButton")
+        .value("LEFT", Velosia::Engine::Input::MouseButton::LEFT)
+        .value("RIGHT", Velosia::Engine::Input::MouseButton::RIGHT)
+        .value("MIDDLE", Velosia::Engine::Input::MouseButton::MIDDLE)
+        .export_values();
+
     py::class_<Velosia::Engine::Input>(m, "Input")
         .def_static("is_key_pressed", &Velosia::Engine::Input::IsKeyPressed)
         .def_static("is_key_down", &Velosia::Engine::Input::IsKeyDown)
         .def_static("is_key_released", &Velosia::Engine::Input::IsKeyReleased)
-        .def_static("is_key_up", &Velosia::Engine::Input::IsKeyUp);
+        .def_static("is_key_up", &Velosia::Engine::Input::IsKeyUp)
+        .def_static("is_mouse_button_pressed", &Velosia::Engine::Input::IsMouseButtonPressed)
+        .def_static("is_mouse_button_down", &Velosia::Engine::Input::IsMouseButtonDown)
+        .def_static("is_mouse_button_released", &Velosia::Engine::Input::IsMouseButtonReleased)
+        .def_static("get_mouse_x", &Velosia::Engine::Input::GetMouseX)
+        .def_static("get_mouse_y", &Velosia::Engine::Input::GetMouseY);
 
     py::class_<Velosia::Engine::PlayerInputSystem>(m, "PlayerInputSystem")
         .def_static("update", &Velosia::Engine::PlayerInputSystem::Update, py::arg("ecs"), py::arg("player_tag"), py::arg("speed"));
@@ -112,7 +130,9 @@ PYBIND11_MODULE(velosia_core, m) {
         .def_static("get_instance", &Velosia::Engine::ResourceManager::GetInstance, py::return_value_policy::reference)
         .def("load_texture", &Velosia::Engine::ResourceManager::LoadTexture, py::arg("id"), py::arg("filepath"))
         .def("unload_texture", &Velosia::Engine::ResourceManager::UnloadTexture, py::arg("id"))
-        .def("clear_textures", &Velosia::Engine::ResourceManager::ClearTextures);
+        .def("clear_textures", &Velosia::Engine::ResourceManager::ClearTextures)
+        .def("load_font", &Velosia::Engine::ResourceManager::LoadFontAsset, py::arg("id"), py::arg("filepath"))
+        .def("clear_fonts", &Velosia::Engine::ResourceManager::ClearFonts);
 
     py::class_<Velosia::Engine::DisplayManager>(m, "DisplayManager")
         .def_static("set_internal_resolution", &Velosia::Engine::DisplayManager::SetInternalResolution)

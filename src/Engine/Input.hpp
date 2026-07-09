@@ -24,6 +24,21 @@ namespace Velosia::Engine {
         static bool IsKeyDown(Key key) { return ::IsKeyDown(static_cast<int>(key)); }
         static bool IsKeyReleased(Key key) { return ::IsKeyReleased(static_cast<int>(key)); }
         static bool IsKeyUp(Key key) { return ::IsKeyUp(static_cast<int>(key)); }
+
+        // Mouse
+        enum class MouseButton {
+            LEFT = MOUSE_BUTTON_LEFT,
+            RIGHT = MOUSE_BUTTON_RIGHT,
+            MIDDLE = MOUSE_BUTTON_MIDDLE
+        };
+
+        static bool IsMouseButtonPressed(MouseButton button) { return ::IsMouseButtonPressed(static_cast<int>(button)); }
+        static bool IsMouseButtonDown(MouseButton button) { return ::IsMouseButtonDown(static_cast<int>(button)); }
+        static bool IsMouseButtonReleased(MouseButton button) { return ::IsMouseButtonReleased(static_cast<int>(button)); }
+
+        // Returns scaled mouse X relative to the internal canvas (RenderTexture)
+        static float GetMouseX();
+        static float GetMouseY();
     };
 
 }

@@ -26,10 +26,16 @@ namespace Velosia::Engine {
         // Unload all textures (useful for changing scenes/levels)
         void ClearTextures();
 
+        // Font Management
+        void LoadFontAsset(const std::string& id, const std::string& filepath);
+        Font* GetFont(const std::string& id);
+        void ClearFonts();
+
     private:
         ResourceManager() = default;
 
         std::unordered_map<std::string, Texture2D> textures;
+        std::unordered_map<std::string, Font> fonts;
 
     public:
         // Must be public so Pybind11 can clean it up (though it's a singleton)
