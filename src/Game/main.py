@@ -1,5 +1,12 @@
 import sys
 import os
+import sysconfig
+
+# === DIAGNOSTICS: TEMPORARY DEBUGGING ===
+print("=== PYTHON DIAGNOSTICS ===")
+print(f"Executing Python Version: {sys.version}")
+print(f"Executing Python Path: {sys.executable}")
+print(f"Expected Extension Suffix: {sysconfig.get_config_var('EXT_SUFFIX')}")
 
 # Resolve the absolute path to the build directory robustly
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -9,6 +16,13 @@ build_dir = os.path.abspath(os.path.join(current_dir, '..', '..', 'build'))
 sys.path.insert(0, build_dir)
 sys.path.insert(0, os.path.join(build_dir, 'Release'))
 sys.path.insert(0, os.path.join(build_dir, 'Debug'))
+
+print(f"Checking for files in Build Dir: {build_dir}")
+try:
+    print(f"Files found: {os.listdir(build_dir)}")
+except Exception as e:
+    print(f"Error reading build dir: {e}")
+print("==========================")
 
 import velosia_core
 from Scripts.SceneManager import SceneManager
