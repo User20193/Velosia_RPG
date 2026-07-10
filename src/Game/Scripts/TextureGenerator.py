@@ -8,99 +8,27 @@ def clamp(val, min_val, max_val):
 
 def generate_stone_wall(output_path):
     """
-    Generates a 32x32 seamless procedural pixel-art stone wall.
-    Uses a grid approach with perturbed vertices and fake directional lighting.
+    Generates a 32x32 minimalist background.
+    Dark slate with a very faint grid/dithering so it isn't completely flat.
     """
     width, height = 32, 32
     img = Image.new("RGBA", (width, height), (0, 0, 0, 255))
     pixels = img.load()
 
-    # Fantasy Dark Stone Palette (dark to light)
-    base_color = (43, 45, 66)
-    highlight_color = (141, 153, 174)
-    shadow_color = (20, 22, 35)
-    mortar_color = (10, 11, 15)
-
-    # We'll create a 2x4 grid of stones to make it seamless on a 32x32 texture
-    # Columns = 2 (16px each), Rows = 4 (8px each)
-    cols = 2
-    rows = 4
-
-    col_width = width // cols
-    row_height = height // rows
-
-    # Create a base map for stone IDs to track which pixel belongs to which stone
-    stone_map = [[-1 for _ in range(height)] for _ in range(width)]
-
-    # Perturb the grid to make stones look natural, but keep edges wrap-around
-    # We define horizontal lines and vertical dividers
-    # Row 0: y=0, Row 1: y=8, Row 2: y=16, Row 3: y=24
-    # To make it brick-like, odd rows are shifted.
+    # Minimalist Dark Palette
+    base_color = (25, 27, 33)   # Deep slate
+    alt_color = (20, 22, 28)    # Slightly darker
 
     for y in range(height):
         for x in range(width):
-            # Determine base row and col
-            r = y // row_height
-
-            # Stagger every other row
-            shift = (col_width // 2) if r % 2 != 0 else 0
-
-            # Add some noise to the boundaries
-            noise_x = int(math.sin(y * 1.5) * 1.5)
-            noise_y = int(math.cos(x * 1.5) * 1.5)
-
-            eff_x = (x + shift + noise_x) % width
-            eff_y = (y + noise_y) % height
-
-            c = eff_x // col_width
-
-            # Boundary detection for mortar
-            # Are we near the edge of a cell?
-            rem_x = eff_x % col_width
-            rem_y = eff_y % row_height
-
-            # Thick mortar
-            if rem_x < 2 or rem_x > col_width - 2 or rem_y < 2 or rem_y > row_height - 2:
-                stone_map[x][y] = -1 # Mortar
+            # Extremely subtle checkerboard/dither for minimalist texture
+            if (x + y) % 2 == 0:
+                pixels[x, y] = base_color
             else:
-                stone_map[x][y] = (r * cols) + c
-
-    # Now color the pixels based on the map and apply lighting
-    for y in range(height):
-        for x in range(width):
-            s_id = stone_map[x][y]
-            if s_id == -1:
-                # Mortar
-                pixels[x, y] = mortar_color
-            else:
-                # Stone body
-                # Basic noise for texture
-                noise = random.randint(-5, 5)
-                r_base, g_base, b_base = base_color
-
-                # Check neighbors for bevel lighting
-                # Top/Left neighbors
-                is_top_edge = stone_map[x][(y-1)%height] == -1
-                is_left_edge = stone_map[(x-1)%width][y] == -1
-
-                # Bottom/Right neighbors
-                is_bottom_edge = stone_map[x][(y+1)%height] == -1
-                is_right_edge = stone_map[(x+1)%width][y] == -1
-
-                if is_top_edge or is_left_edge:
-                    # Highlight
-                    r, g, b = highlight_color
-                    pixels[x, y] = (r + noise, g + noise, b + noise, 255)
-                elif is_bottom_edge or is_right_edge:
-                    # Shadow
-                    r, g, b = shadow_color
-                    pixels[x, y] = (r + noise, g + noise, b + noise, 255)
-                else:
-                    # Base
-                    pixels[x, y] = (r_base + noise, g_base + noise, b_base + noise, 255)
+                pixels[x, y] = alt_color
 
     img.save(output_path)
-    print(f"Generated stone wall at {output_path}")
+    print(f"Generated minimal background at {output_path}")
 
 def generate_liana(output_path):
     """
@@ -112,9 +40,9 @@ def generate_liana(output_path):
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0)) # Fully transparent
     draw = ImageDraw.Draw(img)
 
-    base_color = (34, 139, 34, 255)     # Forest Green
-    highlight_color = (50, 205, 50, 255)# Lime Green
-    outline_color = (0, 50, 0, 255)     # Dark outline
+    base_color = (0, 200, 100, 255)     # Vibrant Emerald/Mint Green
+    highlight_color = (50, 255, 150, 255)# Bright Lime/Mint
+    outline_color = (0, 40, 20, 255)     # Very dark green outline
 
     # Start at top center
     x = width // 2

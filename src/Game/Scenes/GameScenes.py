@@ -71,31 +71,15 @@ class MainMenuScene(Scene):
         res.load_texture("wall_bg", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'wall_bg.png'))
         res.load_texture("liana", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'liana.png'))
 
-        # Setup ECS Background Entities (Tiling the 32x32 texture)
         screen_width = velosia_core.DisplayManager.get_internal_width()
         screen_height = velosia_core.DisplayManager.get_internal_height()
-
-        # Scaling the 32x32 texture up slightly (e.g. 2x) for a better pixel-art look
-        tile_scale = 2.0
-        scaled_tile_size = int(32 * tile_scale)
-
-        cols = (screen_width // scaled_tile_size) + 1
-        rows = (screen_height // scaled_tile_size) + 1
-
-        for r in range(rows):
-            for c in range(cols):
-                bg_entity = self.ecs.create_entity()
-                self.ecs.add_transform(bg_entity, c * scaled_tile_size, r * scaled_tile_size)
-                self.ecs.add_sprite(bg_entity, "wall_bg")
-                bg_sprite = self.ecs.get_sprite(bg_entity)
-                bg_sprite.scale = tile_scale
-                bg_sprite.src_width = 32
-                bg_sprite.src_height = 32
 
         self.liana_system = LianaSystem()
         self.liana_entities = []
 
-        # Spawn Lianas
+        # Spawn Lianas FIRST so they render ON TOP.
+        # EnTT view iterations return the most recently created entities first.
+        # So Lianas (created first) will be returned last in the view, rendering them on top of the background.
         for i in range(15):
             liana_ent = self.ecs.create_entity()
             x_pos = 20 + i * (screen_width / 15) + random.uniform(-15, 15)
@@ -114,6 +98,26 @@ class MainMenuScene(Scene):
             sprite.origin_y = 0.0
 
             self.liana_entities.append(liana_ent)
+
+        # Setup ECS Background Entities (Tiling the 32x32 texture)
+        # Create these LAST so EnTT draws them FIRST (at the bottom/back).
+
+        # Scaling the 32x32 texture up slightly (e.g. 2x) for a better pixel-art look
+        tile_scale = 2.0
+        scaled_tile_size = int(32 * tile_scale)
+
+        cols = (screen_width // scaled_tile_size) + 1
+        rows = (screen_height // scaled_tile_size) + 1
+
+        for r in range(rows):
+            for c in range(cols):
+                bg_entity = self.ecs.create_entity()
+                self.ecs.add_transform(bg_entity, c * scaled_tile_size, r * scaled_tile_size)
+                self.ecs.add_sprite(bg_entity, "wall_bg")
+                bg_sprite = self.ecs.get_sprite(bg_entity)
+                bg_sprite.scale = tile_scale
+                bg_sprite.src_width = 32
+                bg_sprite.src_height = 32
 
         # Load Fonts
         res.load_font("fantasy_font", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'fonts', 'fantasy.ttf'))
