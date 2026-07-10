@@ -67,7 +67,10 @@ PYBIND11_MODULE(velosia_core, m) {
         .def_readwrite("tint_r", &Velosia::Engine::SpriteComponent::tintR)
         .def_readwrite("tint_g", &Velosia::Engine::SpriteComponent::tintG)
         .def_readwrite("tint_b", &Velosia::Engine::SpriteComponent::tintB)
-        .def_readwrite("tint_a", &Velosia::Engine::SpriteComponent::tintA);
+        .def_readwrite("tint_a", &Velosia::Engine::SpriteComponent::tintA)
+        .def_readwrite("rotation", &Velosia::Engine::SpriteComponent::rotation)
+        .def_readwrite("origin_x", &Velosia::Engine::SpriteComponent::originX)
+        .def_readwrite("origin_y", &Velosia::Engine::SpriteComponent::originY);
 
     py::class_<Velosia::Engine::RenderSystem>(m, "RenderSystem")
         .def_static("init_window", &Velosia::Engine::RenderSystem::InitWindow)

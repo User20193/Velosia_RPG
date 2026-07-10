@@ -16,5 +16,8 @@ namespace Velosia::Engine {
         unsigned char tintG = 255;
         unsigned char tintB = 255;
         unsigned char tintA = 255;
+        float rotation = 0.0f;
+        float originX = 0.0f;
+        float originY = 0.0f;
     };
 }

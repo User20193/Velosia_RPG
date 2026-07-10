@@ -58,6 +58,8 @@ class GameplayScene(Scene):
         velosia_core.RenderSystem.end_draw()
 
 from Scripts.UI import ParallaxBackground, UIButton
+from Scripts.LianaSystem import LianaSystem
+import random
 
 class MainMenuScene(Scene):
     def load(self):
@@ -67,6 +69,44 @@ class MainMenuScene(Scene):
 
         # Load static background
         res.load_texture("main_menu_bg", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'main_menu_bg.png'))
+
+        # Load New Textures
+        res.load_texture("wall_bg", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'wall_bg.png'))
+        res.load_texture("liana", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'liana.png'))
+
+        # Setup ECS Background Entity
+        bg_entity = self.ecs.create_entity()
+        self.ecs.add_transform(bg_entity, 0, 0)
+        self.ecs.add_sprite(bg_entity, "wall_bg")
+        # Wall is likely small since it's a 32x32 tileset sheet or similar, let's just stretch it for now or rely on its size
+        bg_sprite = self.ecs.get_sprite(bg_entity)
+        bg_sprite.scale = velosia_core.DisplayManager.get_internal_width() / 150.0 # scale it up to cover screen, adjust if needed
+        # Actually, wait, it's 256x256 tileset, so scale around 5 is fine for 1366
+        bg_sprite.scale = 1366 / 256.0
+        bg_sprite.src_width = 256
+        bg_sprite.src_height = 256
+
+        self.liana_system = LianaSystem()
+        self.liana_entities = []
+
+        # Spawn Lianas
+        screen_width = velosia_core.DisplayManager.get_internal_width()
+        for i in range(10):
+            liana_ent = self.ecs.create_entity()
+            x_pos = 50 + i * (screen_width / 10) + random.uniform(-20, 20)
+
+            # Start off the screen top slightly
+            self.ecs.add_transform(liana_ent, x_pos, -10)
+            self.ecs.add_sprite(liana_ent, "liana")
+
+            sprite = self.ecs.get_sprite(liana_ent)
+            sprite.scale = 2.0
+
+            # Set top-center origin so it swings like a pendulum
+            sprite.origin_x = sprite.src_width / 2.0
+            sprite.origin_y = 0.0
+
+            self.liana_entities.append(liana_ent)
 
         # Load Fonts
         res.load_font("fantasy_font", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'fonts', 'fantasy.ttf'))
@@ -81,8 +121,8 @@ class MainMenuScene(Scene):
         self.btn_exit = UIButton(600, 490, 150, 30, "ВЫХОД", "pixel_rus")
 
     def update(self):
-        # Parallax update deferred
-        # self.parallax.update(1.0) # Delta scroll
+        # Update Liana physics
+        self.liana_system.update_lianas(self.ecs, self.liana_entities)
 
         # Check Buttons
         if self.btn_new_game.update():
@@ -95,8 +135,8 @@ class MainMenuScene(Scene):
     def render(self):
         velosia_core.RenderSystem.begin_draw()
 
-        # 1. Background
-        velosia_core.RenderSystem.draw_texture("main_menu_bg", 0, 0, 1.0)
+        # 1. Background (Render entities like wall and lianas first)
+        velosia_core.RenderSystem.draw_entities(self.ecs)
 
         # 2. Draw Title (Perfectly Centered for 1366 width using C++ Text Measurement)
         title_text = "VELOSIA RPG"
