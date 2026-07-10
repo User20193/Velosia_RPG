@@ -115,7 +115,21 @@ namespace Velosia::Engine {
 
         // Draw proper sprites if SpriteComponent exists
         auto viewSprite = ecs.GetRegistry().view<TransformComponent, SpriteComponent>();
+
+        // Collect entities to sort them by Y-coordinate for proper depth rendering
+        std::vector<entt::entity> sortedEntities;
         for (auto entity : viewSprite) {
+            sortedEntities.push_back(entity);
+        }
+
+        // Sort: lower Y (higher up on screen) draws first, so higher Y (lower down) overlaps it.
+        std::sort(sortedEntities.begin(), sortedEntities.end(), [&viewSprite](const entt::entity& a, const entt::entity& b) {
+            const auto& tA = viewSprite.get<TransformComponent>(a);
+            const auto& tB = viewSprite.get<TransformComponent>(b);
+            return tA.y < tB.y;
+        });
+
+        for (auto entity : sortedEntities) {
             auto& transform = viewSprite.get<TransformComponent>(entity);
             auto& sprite = viewSprite.get<SpriteComponent>(entity);
 

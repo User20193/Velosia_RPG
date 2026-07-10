@@ -20,82 +20,92 @@ class GameplayScene(Scene):
 
         res = velosia_core.ResourceManager.get_instance()
 
-        # Load the generated gameplay textures
-        res.load_texture("grass_base", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'grass_base.png'))
-        res.load_texture("grass_flower", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'grass_flower.png'))
-        res.load_texture("grass_stone", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'grass_stone.png'))
-        res.load_texture("tree_oak", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'tree_oak.png'))
-        res.load_texture("tree_pine", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'tree_pine.png'))
-        res.load_texture("player", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'player_idle.png'))
+        # Load the newly generated ARPG textures
+        res.load_texture("arpg_tileset", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'arpg_tileset.png'))
+        res.load_texture("tree_arpg", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'tree_arpg.png'))
+        res.load_texture("player_arpg", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'player_arpg.png'))
 
         screen_width = velosia_core.DisplayManager.get_internal_width()
         screen_height = velosia_core.DisplayManager.get_internal_height()
 
-        # Expand the "world" slightly beyond the screen for the effect
-        world_width = int(screen_width * 1.5)
-        world_height = int(screen_height * 1.5)
+        self.tile_scale = 2.0
+        self.scaled_tile_size = int(32 * self.tile_scale)
 
-        # Spawn entities (Reverse iteration: Player -> Trees -> Grass)
+        self.map_width = (int(screen_width * 1.5) // self.scaled_tile_size) + 1
+        self.map_height = (int(screen_height * 1.5) // self.scaled_tile_size) + 1
 
-        # 1. Player
+        # Generate Tilemap Data (1D array)
+        # Tiles: 1 = Base Grass, 2 = Flower Grass, 3 = Dirt Path
+        self.map_data = []
+        random.seed(42) # For consistent look during testing
+
+        # Create a simple path winding through the center
+        for y in range(self.map_height):
+            for x in range(self.map_width):
+                # Path logic (rough horizontal line with some noise)
+                is_path = (self.map_height // 2 - 2 <= y <= self.map_height // 2 + 2) and (x > 5)
+                if is_path and random.random() > 0.1:
+                    self.map_data.append(3) # Dirt
+                else:
+                    r = random.random()
+                    if r > 0.95:
+                        self.map_data.append(2) # Flower
+                    else:
+                        self.map_data.append(1) # Grass
+
+        # Spawn Player
         self.player_entity = self.ecs.create_entity()
         self.ecs.add_tag(self.player_entity, "Player")
         self.ecs.add_transform(self.player_entity, screen_width / 2, screen_height / 2)
         self.ecs.add_velocity(self.player_entity, 0.0, 0.0)
-        self.ecs.add_sprite(self.player_entity, "player")
+        self.ecs.add_sprite(self.player_entity, "player_arpg")
         player_sprite = self.ecs.get_sprite(self.player_entity)
         player_sprite.scale = 2.0
         player_sprite.src_width = 32
         player_sprite.src_height = 32
+        # Set origin near bottom center so feet are the collision/sorting point
         player_sprite.origin_x = 16.0
-        player_sprite.origin_y = 16.0
+        player_sprite.origin_y = 28.0
 
-        # 2. Trees (Obstacles)
-        num_trees = 30
-        tree_types = ["tree_oak", "tree_pine"]
+        # Spawn Trees (Obstacles)
+        num_trees = 25
         for _ in range(num_trees):
             tree_ent = self.ecs.create_entity()
-            tx = random.uniform(50, world_width - 50)
-            ty = random.uniform(50, world_height - 50)
-            t_type = random.choice(tree_types)
+            # Random position, but try to avoid the dirt path center
+            tx = random.uniform(50, screen_width * 1.5 - 50)
+            ty = random.uniform(50, screen_height * 1.5 - 50)
+
             self.ecs.add_transform(tree_ent, tx, ty)
-            self.ecs.add_sprite(tree_ent, t_type)
+            self.ecs.add_sprite(tree_ent, "tree_arpg")
             tree_sprite = self.ecs.get_sprite(tree_ent)
             tree_sprite.scale = 2.0
             tree_sprite.src_width = 64
             tree_sprite.src_height = 64
-            # Set origin near bottom center so the player can walk "behind" the top part
+            # Set origin to the base of the trunk for proper Y-sorting
             tree_sprite.origin_x = 32.0
             tree_sprite.origin_y = 56.0
 
-        # 3. Grass Background
-        tile_scale = 2.0
-        scaled_tile_size = int(32 * tile_scale)
-        cols = (world_width // scaled_tile_size) + 1
-        rows = (world_height // scaled_tile_size) + 1
-
-        grass_variants = ["grass_base"] * 10 + ["grass_flower"] * 2 + ["grass_stone"] * 1 # Weighted random
-
-        for r in range(rows):
-            for c in range(cols):
-                grass_ent = self.ecs.create_entity()
-                self.ecs.add_transform(grass_ent, c * scaled_tile_size, r * scaled_tile_size)
-
-                g_type = random.choice(grass_variants)
-                self.ecs.add_sprite(grass_ent, g_type)
-                grass_sprite = self.ecs.get_sprite(grass_ent)
-                grass_sprite.scale = tile_scale
-                grass_sprite.src_width = 32
-                grass_sprite.src_height = 32
-
     def update(self):
         # Update player input and velocity (reduced speed for better control)
-        velosia_core.PlayerInputSystem.update(self.ecs, "Player", 20.0)
+        velosia_core.PlayerInputSystem.update(self.ecs, "Player", 15.0)
         # Apply velocity to transform
         velosia_core.MovementSystem.update(self.ecs)
 
     def render(self):
         velosia_core.RenderSystem.begin_draw()
+
+        # Draw the ground using the fast TilemapSystem
+        # Tileset has 3 columns (Grass, Flower, Dirt)
+        velosia_core.TilemapSystem.draw_map(
+            self.map_data,
+            self.map_width,
+            self.map_height,
+            self.scaled_tile_size,
+            "arpg_tileset",
+            3
+        )
+
+        # Draw dynamic entities (Player, Trees) which will be Y-sorted automatically by C++ RenderSystem
         velosia_core.RenderSystem.draw_entities(self.ecs)
         velosia_core.RenderSystem.end_draw()
 

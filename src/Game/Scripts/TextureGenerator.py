@@ -76,227 +76,191 @@ def generate_fog(output_path):
     img.save(output_path)
     print(f"Generated fog at {output_path}")
 
-def fill_circle_pixels(draw, cx, cy, r, color):
-    # A helper to draw filled circles in a strict pixel-art fashion (no anti-aliasing)
-    for y in range(-r, r + 1):
-        for x in range(-r, r + 1):
-            if x*x + y*y <= r*r:
-                draw.point((cx + x, cy + y), fill=color)
+def draw_ascii_matrix(draw, matrix, palette, offset_x=0, offset_y=0, scale=1):
+    for y, row in enumerate(matrix):
+        for x, char in enumerate(row):
+            if char in palette:
+                color = palette[char]
+                px = offset_x + (x * scale)
+                py = offset_y + (y * scale)
+                if scale == 1:
+                    draw.point((px, py), fill=color)
+                else:
+                    draw.rectangle([px, py, px + scale - 1, py + scale - 1], fill=color)
 
-def generate_grass_variant(output_path, variant="base"):
-    width, height = 32, 32
-
-    # Base fantasy grass color
-    base_color = (60, 150, 70, 255)
-    img = Image.new("RGBA", (width, height), base_color)
+def generate_tileset(output_path):
+    # Generates a 96x32 tileset containing: [0] Grass Base, [1] Grass Flower, [2] Dirt Path
+    width, height = 96, 32
+    img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Noise/texture colors
-    highlight = (80, 175, 90, 255)
-    shadow = (40, 120, 50, 255)
-    deep_shadow = (25, 95, 35, 255)
+    # Palette
+    P = {
+        '.': (116, 186, 104, 255), # Grass Light
+        ',': (89,  158,  78, 255), # Grass Mid
+        ';': (55,  110,  46, 255), # Grass Dark
+        'w': (240, 240, 240, 255), # White Flower
+        'y': (245, 215,  66, 255), # Yellow Flower Center
+        'd': (184, 138,  92, 255), # Dirt Base
+        'D': (150, 105,  65, 255), # Dirt Shadow
+        'l': (209, 172, 134, 255), # Dirt Highlight
+    }
 
-    # Sprinkle some organic pixel clusters for texture
-    random.seed(variant + output_path) # Deterministic for consistent generation
-    for _ in range(15):
-        x = random.randint(0, width - 2)
-        y = random.randint(0, height - 2)
-        draw.point((x, y), fill=shadow)
-        draw.point((x+1, y), fill=deep_shadow)
-        draw.point((x, y+1), fill=highlight)
+    # Helper to fill random base with noise
+    def fill_grass(offset_x):
+        for y in range(32):
+            for x in range(32):
+                r = random.random()
+                c = '.' if r > 0.3 else (',' if r > 0.05 else ';')
+                draw.point((offset_x + x, y), fill=P[c])
 
-    if variant == "flower":
-        # Add a tiny 3x3 flower
-        fx, fy = random.randint(4, 28), random.randint(4, 28)
-        flower_center = (255, 200, 0, 255)
-        flower_petal = (200, 200, 255, 255)
-        # Petals (cross)
-        draw.point((fx-1, fy), fill=flower_petal)
-        draw.point((fx+1, fy), fill=flower_petal)
-        draw.point((fx, fy-1), fill=flower_petal)
-        draw.point((fx, fy+1), fill=flower_petal)
-        # Center
-        draw.point((fx, fy), fill=flower_center)
+    def fill_dirt(offset_x):
+        for y in range(32):
+            for x in range(32):
+                r = random.random()
+                c = 'd' if r > 0.2 else ('D' if r > 0.05 else 'l')
+                draw.point((offset_x + x, y), fill=P[c])
 
-    elif variant == "stone":
-        # Small grey stone cluster
-        sx, sy = random.randint(4, 24), random.randint(4, 24)
-        stone_light = (160, 160, 170, 255)
-        stone_dark = (100, 100, 110, 255)
-        stone_shadow = (60, 60, 70, 255)
+    random.seed(42)
+    # Tile 0: Base Grass
+    fill_grass(0)
 
-        draw.rectangle([sx, sy, sx+3, sy+2], fill=stone_light)
-        draw.rectangle([sx, sy+2, sx+3, sy+3], fill=stone_dark)
-        draw.rectangle([sx+3, sy, sx+4, sy+3], fill=stone_shadow)
+    # Tile 1: Flower Grass
+    fill_grass(32)
+    # Add a few small pixel flowers
+    for _ in range(4):
+        fx = random.randint(2, 28)
+        fy = random.randint(2, 28)
+        draw.point((32+fx-1, fy), fill=P['w'])
+        draw.point((32+fx+1, fy), fill=P['w'])
+        draw.point((32+fx, fy-1), fill=P['w'])
+        draw.point((32+fx, fy+1), fill=P['w'])
+        draw.point((32+fx, fy), fill=P['y'])
+
+    # Tile 2: Dirt Path
+    fill_dirt(64)
+    # Add grass edging to dirt
+    for y in range(32):
+        for x in range(32):
+            if x < 4 or x > 27 or y < 4 or y > 27:
+                if random.random() > 0.4:
+                     draw.point((64+x, y), fill=P[';'])
 
     img.save(output_path)
-    print(f"Generated {variant} grass at {output_path}")
+    print(f"Generated Tileset at {output_path}")
 
-def generate_tree_oak(output_path):
+def generate_arpg_tree(output_path):
+    # Generates a Secret of Mana style round tree (64x64)
     width, height = 64, 64
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Fantasy Oak colors
-    trunk_color = (110, 70, 40, 255)
-    trunk_shadow = (75, 45, 25, 255)
-    trunk_highlight = (140, 95, 60, 255)
+    # Pixel Art Palette
+    P = {
+        'O': ( 24,  36,  24, 255), # Outline
+        'T': (105,  66,  36, 255), # Trunk Base
+        't': ( 71,  40,  18, 255), # Trunk Shadow
+        '1': ( 36,  92,  36, 255), # Leaf Deep Shadow
+        '2': ( 55, 148,  55, 255), # Leaf Mid
+        '3': ( 92, 194,  92, 255), # Leaf Light
+        '4': (144, 224, 144, 255), # Leaf Highlight
+    }
 
-    leaf_deep = (10, 65, 30, 255)
-    leaf_shadow = (20, 90, 40, 255)
-    leaf_base = (35, 125, 55, 255)
-    leaf_highlight = (65, 165, 80, 255)
+    # ASCII Blueprint for top half of tree (scaled x2 for chunkiness)
+    # 32x32 matrix, drawn at scale=2 to fill 64x64
+    tree_matrix = [
+        "           OOOOOOOOO            ",
+        "        OOO333333333OOO         ",
+        "      OO333333444433333OO       ",
+        "     O3333344444444333333O      ",
+        "    O333344444444444333333O     ",
+        "   O33344444444444444333333O    ",
+        "  O3334444444444444444333333O   ",
+        "  O3333444444444444443333333O   ",
+        " O333333444444444444333333333O  ",
+        " O233333334444444433333333332O  ",
+        "O12233333333333333333333333221O ",
+        "O11222333333333333333333322211O ",
+        "O11122223333333333333332222111O ",
+        "O11112222233333333332222211111O ",
+        " O111112222222222222222111111O  ",
+        " O111111122222222222211111111O  ",
+        "  O1111111111111111111111111O   ",
+        "  OO11111111111111111111111OO   ",
+        "    OOO11111111111111111OOO     ",
+        "       OOOOOOO111OOOOOOO        ",
+        "             OTTO               ",
+        "             OTtO               ",
+        "             OTtO               ",
+        "             OTtO               ",
+        "            OOTtOO              ",
+        "           OTTTttO              ",
+        "           OTtOOtO              ",
+        "           OOO  OO              ",
+    ]
 
-    # Trunk
-    draw.rectangle([28, 40, 36, 60], fill=trunk_color)
-    draw.rectangle([28, 40, 30, 60], fill=trunk_highlight)
-    draw.rectangle([34, 40, 36, 60], fill=trunk_shadow)
-
-    # Roots
-    draw.rectangle([24, 58, 28, 61], fill=trunk_shadow)
-    draw.rectangle([36, 58, 40, 61], fill=trunk_shadow)
-
-    # Canopy (Organic Pixel Clusters)
-    # We draw circles starting from back/shadow to front/highlight
-    # Deep shadow base
-    fill_circle_pixels(draw, 32, 28, 22, leaf_deep)
-    fill_circle_pixels(draw, 22, 34, 14, leaf_deep)
-    fill_circle_pixels(draw, 42, 34, 14, leaf_deep)
-
-    # Base color
-    fill_circle_pixels(draw, 32, 26, 20, leaf_base)
-    fill_circle_pixels(draw, 22, 32, 12, leaf_base)
-    fill_circle_pixels(draw, 42, 32, 12, leaf_base)
-
-    # Shadows underneath clusters
-    fill_circle_pixels(draw, 32, 32, 16, leaf_shadow)
-    fill_circle_pixels(draw, 22, 36, 10, leaf_shadow)
-    fill_circle_pixels(draw, 42, 36, 10, leaf_shadow)
-
-    # Highlights on top of clusters
-    fill_circle_pixels(draw, 28, 18, 12, leaf_highlight)
-    fill_circle_pixels(draw, 38, 22, 10, leaf_highlight)
-    fill_circle_pixels(draw, 20, 26, 8, leaf_highlight)
-
+    draw_ascii_matrix(draw, tree_matrix, P, offset_x=0, offset_y=0, scale=2)
     img.save(output_path)
-    print(f"Generated Oak Tree at {output_path}")
+    print(f"Generated ARPG Tree at {output_path}")
 
-def generate_tree_pine(output_path):
-    width, height = 64, 64
-    img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-
-    trunk_color = (90, 60, 40, 255)
-    trunk_shadow = (60, 35, 20, 255)
-
-    leaf_deep = (10, 50, 40, 255)
-    leaf_shadow = (15, 75, 60, 255)
-    leaf_base = (25, 105, 80, 255)
-    leaf_highlight = (45, 135, 100, 255)
-
-    # Trunk
-    draw.rectangle([30, 50, 34, 62], fill=trunk_color)
-    draw.rectangle([32, 50, 34, 62], fill=trunk_shadow)
-
-    # Pine cones / triangular layers
-    def draw_pine_layer(y_top, w, color):
-        for y in range(16):
-            # Calculate width at this y
-            cur_w = int((y / 16.0) * w)
-            draw.line((32 - cur_w, y_top + y, 32 + cur_w, y_top + y), fill=color)
-
-    # Draw bottom to top
-    # Layer 1 (Bottom)
-    draw_pine_layer(36, 24, leaf_deep)
-    draw_pine_layer(34, 22, leaf_base)
-    draw_pine_layer(32, 18, leaf_highlight)
-
-    # Layer 2 (Mid)
-    draw_pine_layer(24, 20, leaf_shadow)
-    draw_pine_layer(22, 18, leaf_base)
-    draw_pine_layer(20, 14, leaf_highlight)
-
-    # Layer 3 (Top)
-    draw_pine_layer(12, 14, leaf_shadow)
-    draw_pine_layer(10, 12, leaf_base)
-    draw_pine_layer(8, 8, leaf_highlight)
-
-    img.save(output_path)
-    print(f"Generated Pine Tree at {output_path}")
-
-def generate_player(output_path):
+def generate_arpg_player(output_path):
     width, height = 32, 32
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Shadow
-    draw.ellipse([8, 26, 24, 30], fill=(0, 0, 0, 100))
+    # Secret of Mana / Stardew Valley proportioned character
+    P = {
+        'O': (  0,   0,   0, 255), # Outline
+        'S': (255, 213, 170, 255), # Skin
+        's': (220, 163, 110, 255), # Skin Shadow
+        'H': (212,  88,  34, 255), # Hair (Red/Orange hero hair)
+        'h': (140,  45,  10, 255), # Hair shadow
+        'B': ( 40,  80, 200, 255), # Shirt Blue
+        'b': ( 20,  40, 120, 255), # Shirt Shadow
+        'Y': (230, 200,  30, 255), # Scarf/Trim Yellow
+        'P': (100, 100, 100, 255), # Pants
+        'L': ( 60,  30,  10, 255), # Leather Boots
+    }
 
-    # Strict pixel-art character (16x24 size roughly)
-    skin = (255, 200, 150, 255)
-    hair = (100, 50, 20, 255)
-    shirt = (50, 100, 200, 255)
-    shirt_shadow = (30, 60, 150, 255)
-    pants = (50, 50, 50, 255)
-    shoes = (30, 20, 10, 255)
-    outline = (0, 0, 0, 255)
+    # 16x24 Blueprint drawn at scale=1, centered
+    player_matrix = [
+        "      OOOO      ",
+        "     OHHHHO     ",
+        "    OHHHHHHO    ",
+        "    OHhHHhHO    ",
+        "   OHHSSSSHO    ",
+        "   OHOSOSOHO    ",
+        "   OHSSSSSHO    ",
+        "   OHHsssHHO    ",
+        "    OHHHHHHO    ",
+        "     OOOOOO     ",
+        "     OYYYYO     ",
+        "    OBBBBbBO    ",
+        "   OBBBBBbbBO   ",
+        "   OBbBBbBbBO   ",
+        "   OSOBBBBOSO   ",
+        "   OSOBbBbOSO   ",
+        "   OOOPPPPOOO   ",
+        "      OPPO      ",
+        "     OPPPPO     ",
+        "     OP  PO     ",
+        "    OLLO OLLO   ",
+        "    OLLO OLLO   ",
+        "    OOOO OOOO   "
+    ]
 
-    # Head (10x10)
-    draw.rectangle([11, 4, 21, 14], fill=skin, outline=outline)
+    # Center it: (32-16)/2 = 8, (32-24)/2 = 4
+    draw_ascii_matrix(draw, player_matrix, P, offset_x=8, offset_y=4, scale=1)
 
-    # Hair
-    draw.rectangle([10, 2, 22, 6], fill=hair, outline=outline)
-    draw.rectangle([10, 6, 12, 10], fill=hair)
-    draw.rectangle([20, 6, 22, 10], fill=hair)
-
-    # Eyes (2x2)
-    draw.rectangle([13, 9, 14, 10], fill=outline)
-    draw.rectangle([18, 9, 19, 10], fill=outline)
-
-    # Body (12x10)
-    draw.rectangle([10, 15, 22, 23], fill=shirt, outline=outline)
-    draw.rectangle([16, 15, 22, 23], fill=shirt_shadow) # Shading on right side
-
-    # Belt
-    draw.rectangle([10, 22, 22, 23], fill=(150, 100, 50, 255), outline=outline)
-    draw.rectangle([15, 21, 17, 23], fill=(200, 200, 50, 255)) # Belt buckle
-
-    # Left Arm
-    draw.rectangle([6, 15, 9, 21], fill=shirt, outline=outline)
-    draw.rectangle([6, 21, 9, 23], fill=skin, outline=outline) # Hand
-
-    # Right Arm
-    draw.rectangle([23, 15, 26, 21], fill=shirt_shadow, outline=outline)
-    draw.rectangle([23, 21, 26, 23], fill=skin, outline=outline) # Hand
-
-    # Left Leg
-    draw.rectangle([11, 24, 15, 27], fill=pants, outline=outline)
-    draw.rectangle([11, 28, 15, 29], fill=shoes, outline=outline)
-
-    # Right Leg
-    draw.rectangle([17, 24, 21, 27], fill=pants, outline=outline)
-    draw.rectangle([17, 28, 21, 29], fill=shoes, outline=outline)
+    # Shadow underneath
+    draw.ellipse([8, 28, 24, 31], fill=(0, 0, 0, 100))
 
     img.save(output_path)
-    print(f"Generated player at {output_path}")
+    print(f"Generated ARPG Player at {output_path}")
+
 
 if __name__ == "__main__":
     os.makedirs('assets/textures', exist_ok=True)
-    generate_stone_wall('assets/textures/wall_bg.png')
-
-    # Generate variations of lianas
-    generate_liana('assets/textures/liana_64.png', length=64, base_color=(0, 200, 100, 255))
-    generate_liana('assets/textures/liana_128.png', length=128, base_color=(0, 180, 90, 255))
-    generate_liana('assets/textures/liana_256.png', length=256, base_color=(0, 150, 80, 255))
-    generate_liana('assets/textures/liana_384.png', length=384, base_color=(0, 120, 60, 255))
-
-    generate_fog('assets/textures/fog.png')
-
-    generate_grass_variant('assets/textures/grass_base.png', "base")
-    generate_grass_variant('assets/textures/grass_flower.png', "flower")
-    generate_grass_variant('assets/textures/grass_stone.png', "stone")
-
-    generate_tree_oak('assets/textures/tree_oak.png')
-    generate_tree_pine('assets/textures/tree_pine.png')
-
-    generate_player('assets/textures/player_idle.png')
+    generate_tileset('assets/textures/arpg_tileset.png')
+    generate_arpg_tree('assets/textures/tree_arpg.png')
+    generate_arpg_player('assets/textures/player_arpg.png')
