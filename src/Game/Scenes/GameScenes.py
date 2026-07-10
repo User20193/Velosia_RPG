@@ -18,34 +18,76 @@ class GameplayScene(Scene):
         bus = velosia_core.EventBus.get_instance()
         bus.emit("SceneChanged", "Gameplay")
 
-        img_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'sprites', 'hero.png')
-        velosia_core.ResourceManager.get_instance().load_texture("hero_tex", img_path)
+        res = velosia_core.ResourceManager.get_instance()
 
-        grass_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'sprites', 'tilesets', 'grass_tile.png')
-        velosia_core.ResourceManager.get_instance().load_texture("grass_tileset", grass_path)
+        # Load the generated gameplay textures
+        res.load_texture("grass", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'grass.png'))
+        res.load_texture("tree", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'tree.png'))
+        res.load_texture("player", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'player_idle.png'))
 
-        level_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'data', 'level_01.json')
-        self.entities = DataLoader.load_level(level_path, self.ecs)
+        screen_width = velosia_core.DisplayManager.get_internal_width()
+        screen_height = velosia_core.DisplayManager.get_internal_height()
 
-        self.map_width = 45
-        self.map_height = 25
-        self.tile_size = 32
-        self.map_data = [1] * (self.map_width * self.map_height)
+        # Spawn grass floor (as ECS entities, rendered back-to-front because of reverse iteration)
+        # Note: In EnTT, entities created LAST render FIRST.
+        # We want the player to render on TOP of the trees (if below them on Y axis, which we'll handle simply via Z-ordering for now).
+        # To make Grass render on the very bottom, it must be created LAST.
+        # So we create Player -> Trees -> Grass.
+
+        # 1. Player
+        self.player_entity = self.ecs.create_entity()
+        self.ecs.add_tag(self.player_entity, "Player")
+        self.ecs.add_transform(self.player_entity, screen_width / 2, screen_height / 2)
+        self.ecs.add_velocity(self.player_entity, 0.0, 0.0)
+        self.ecs.add_sprite(self.player_entity, "player")
+        player_sprite = self.ecs.get_sprite(self.player_entity)
+        player_sprite.scale = 2.0  # Scale up for visibility
+        player_sprite.src_width = 32
+        player_sprite.src_height = 32
+        # Center origin
+        player_sprite.origin_x = 16.0
+        player_sprite.origin_y = 16.0
+
+        # 2. Trees (Obstacles)
+        num_trees = 10
+        for _ in range(num_trees):
+            tree_ent = self.ecs.create_entity()
+            tx = random.uniform(50, screen_width - 50)
+            ty = random.uniform(50, screen_height - 50)
+            self.ecs.add_transform(tree_ent, tx, ty)
+            self.ecs.add_sprite(tree_ent, "tree")
+            tree_sprite = self.ecs.get_sprite(tree_ent)
+            tree_sprite.scale = 2.0
+            tree_sprite.src_width = 64
+            tree_sprite.src_height = 96
+            # Set origin to bottom center for proper depth sorting illusion
+            tree_sprite.origin_x = 32.0
+            tree_sprite.origin_y = 80.0
+
+        # 3. Grass Background
+        tile_scale = 2.0
+        scaled_tile_size = int(32 * tile_scale)
+        cols = (screen_width // scaled_tile_size) + 1
+        rows = (screen_height // scaled_tile_size) + 1
+
+        for r in range(rows):
+            for c in range(cols):
+                grass_ent = self.ecs.create_entity()
+                self.ecs.add_transform(grass_ent, c * scaled_tile_size, r * scaled_tile_size)
+                self.ecs.add_sprite(grass_ent, "grass")
+                grass_sprite = self.ecs.get_sprite(grass_ent)
+                grass_sprite.scale = tile_scale
+                grass_sprite.src_width = 32
+                grass_sprite.src_height = 32
 
     def update(self):
-        velosia_core.PlayerInputSystem.update(self.ecs, "Player", 5.0)
+        # Update player input and velocity
+        velosia_core.PlayerInputSystem.update(self.ecs, "Player", 200.0)
+        # Apply velocity to transform
         velosia_core.MovementSystem.update(self.ecs)
 
     def render(self):
         velosia_core.RenderSystem.begin_draw()
-        velosia_core.TilemapSystem.draw_map(
-            self.map_data,
-            self.map_width,
-            self.map_height,
-            self.tile_size,
-            "grass_tileset",
-            1
-        )
         velosia_core.RenderSystem.draw_entities(self.ecs)
         velosia_core.RenderSystem.end_draw()
 
