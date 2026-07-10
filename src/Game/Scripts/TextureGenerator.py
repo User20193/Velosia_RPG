@@ -76,70 +76,153 @@ def generate_fog(output_path):
     img.save(output_path)
     print(f"Generated fog at {output_path}")
 
-def generate_grass(output_path):
+def fill_circle_pixels(draw, cx, cy, r, color):
+    # A helper to draw filled circles in a strict pixel-art fashion (no anti-aliasing)
+    for y in range(-r, r + 1):
+        for x in range(-r, r + 1):
+            if x*x + y*y <= r*r:
+                draw.point((cx + x, cy + y), fill=color)
+
+def generate_grass_variant(output_path, variant="base"):
     width, height = 32, 32
-    img = Image.new("RGBA", (width, height), (40, 140, 40, 255))
-    pixels = img.load()
 
-    # Strict pixel-art blades of grass
-    # Draw small "V" or "l" shapes in a rigid grid for a clean tile look
-    shade_dark = (20, 100, 20, 255)
-    shade_light = (60, 180, 60, 255)
+    # Base fantasy grass color
+    base_color = (60, 150, 70, 255)
+    img = Image.new("RGBA", (width, height), base_color)
+    draw = ImageDraw.Draw(img)
 
-    for y in range(0, height, 8):
-        for x in range(0, width, 8):
-            # Offset every other row
-            ox = x + (4 if (y // 8) % 2 != 0 else 0)
-            if ox >= width: continue
+    # Noise/texture colors
+    highlight = (80, 175, 90, 255)
+    shadow = (40, 120, 50, 255)
+    deep_shadow = (25, 95, 35, 255)
 
-            # Draw a pixel blade
-            pixels[ox, y+4] = shade_dark
-            pixels[ox, y+3] = shade_light
-            pixels[ox, y+2] = shade_light
-            if ox+1 < width:
-                pixels[ox+1, y+3] = shade_dark
+    # Sprinkle some organic pixel clusters for texture
+    random.seed(variant + output_path) # Deterministic for consistent generation
+    for _ in range(15):
+        x = random.randint(0, width - 2)
+        y = random.randint(0, height - 2)
+        draw.point((x, y), fill=shadow)
+        draw.point((x+1, y), fill=deep_shadow)
+        draw.point((x, y+1), fill=highlight)
+
+    if variant == "flower":
+        # Add a tiny 3x3 flower
+        fx, fy = random.randint(4, 28), random.randint(4, 28)
+        flower_center = (255, 200, 0, 255)
+        flower_petal = (200, 200, 255, 255)
+        # Petals (cross)
+        draw.point((fx-1, fy), fill=flower_petal)
+        draw.point((fx+1, fy), fill=flower_petal)
+        draw.point((fx, fy-1), fill=flower_petal)
+        draw.point((fx, fy+1), fill=flower_petal)
+        # Center
+        draw.point((fx, fy), fill=flower_center)
+
+    elif variant == "stone":
+        # Small grey stone cluster
+        sx, sy = random.randint(4, 24), random.randint(4, 24)
+        stone_light = (160, 160, 170, 255)
+        stone_dark = (100, 100, 110, 255)
+        stone_shadow = (60, 60, 70, 255)
+
+        draw.rectangle([sx, sy, sx+3, sy+2], fill=stone_light)
+        draw.rectangle([sx, sy+2, sx+3, sy+3], fill=stone_dark)
+        draw.rectangle([sx+3, sy, sx+4, sy+3], fill=stone_shadow)
 
     img.save(output_path)
-    print(f"Generated grass at {output_path}")
+    print(f"Generated {variant} grass at {output_path}")
 
-def generate_tree(output_path):
+def generate_tree_oak(output_path):
     width, height = 64, 64
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Pixel-art tree using blocky layered rectangles
-    trunk_color = (100, 50, 20, 255)
-    trunk_shadow = (70, 30, 10, 255)
+    # Fantasy Oak colors
+    trunk_color = (110, 70, 40, 255)
+    trunk_shadow = (75, 45, 25, 255)
+    trunk_highlight = (140, 95, 60, 255)
 
-    leaf_dark = (10, 80, 10, 255)
-    leaf_mid = (20, 120, 20, 255)
-    leaf_light = (40, 160, 40, 255)
+    leaf_deep = (10, 65, 30, 255)
+    leaf_shadow = (20, 90, 40, 255)
+    leaf_base = (35, 125, 55, 255)
+    leaf_highlight = (65, 165, 80, 255)
 
     # Trunk
     draw.rectangle([28, 40, 36, 60], fill=trunk_color)
-    draw.rectangle([28, 40, 32, 60], fill=trunk_shadow) # Shading on trunk
+    draw.rectangle([28, 40, 30, 60], fill=trunk_highlight)
+    draw.rectangle([34, 40, 36, 60], fill=trunk_shadow)
 
-    # Base roots
-    draw.rectangle([24, 58, 40, 62], fill=trunk_color)
-    draw.rectangle([24, 58, 28, 62], fill=trunk_shadow)
+    # Roots
+    draw.rectangle([24, 58, 28, 61], fill=trunk_shadow)
+    draw.rectangle([36, 58, 40, 61], fill=trunk_shadow)
 
-    # Canopy (blocky)
-    # Bottom layer
-    draw.rectangle([12, 32, 52, 48], fill=leaf_dark)
-    # Mid layer
-    draw.rectangle([16, 16, 48, 38], fill=leaf_mid)
-    # Top layer
-    draw.rectangle([22, 6, 42, 22], fill=leaf_light)
+    # Canopy (Organic Pixel Clusters)
+    # We draw circles starting from back/shadow to front/highlight
+    # Deep shadow base
+    fill_circle_pixels(draw, 32, 28, 22, leaf_deep)
+    fill_circle_pixels(draw, 22, 34, 14, leaf_deep)
+    fill_circle_pixels(draw, 42, 34, 14, leaf_deep)
 
-    # Add some chunky "leaves" detail
-    pixels = img.load()
-    for y in range(16, 48, 4):
-        for x in range(16, 48, 4):
-            if pixels[x, y] == leaf_mid:
-                draw.rectangle([x, y, x+2, y+2], fill=leaf_dark)
+    # Base color
+    fill_circle_pixels(draw, 32, 26, 20, leaf_base)
+    fill_circle_pixels(draw, 22, 32, 12, leaf_base)
+    fill_circle_pixels(draw, 42, 32, 12, leaf_base)
+
+    # Shadows underneath clusters
+    fill_circle_pixels(draw, 32, 32, 16, leaf_shadow)
+    fill_circle_pixels(draw, 22, 36, 10, leaf_shadow)
+    fill_circle_pixels(draw, 42, 36, 10, leaf_shadow)
+
+    # Highlights on top of clusters
+    fill_circle_pixels(draw, 28, 18, 12, leaf_highlight)
+    fill_circle_pixels(draw, 38, 22, 10, leaf_highlight)
+    fill_circle_pixels(draw, 20, 26, 8, leaf_highlight)
 
     img.save(output_path)
-    print(f"Generated tree at {output_path}")
+    print(f"Generated Oak Tree at {output_path}")
+
+def generate_tree_pine(output_path):
+    width, height = 64, 64
+    img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    trunk_color = (90, 60, 40, 255)
+    trunk_shadow = (60, 35, 20, 255)
+
+    leaf_deep = (10, 50, 40, 255)
+    leaf_shadow = (15, 75, 60, 255)
+    leaf_base = (25, 105, 80, 255)
+    leaf_highlight = (45, 135, 100, 255)
+
+    # Trunk
+    draw.rectangle([30, 50, 34, 62], fill=trunk_color)
+    draw.rectangle([32, 50, 34, 62], fill=trunk_shadow)
+
+    # Pine cones / triangular layers
+    def draw_pine_layer(y_top, w, color):
+        for y in range(16):
+            # Calculate width at this y
+            cur_w = int((y / 16.0) * w)
+            draw.line((32 - cur_w, y_top + y, 32 + cur_w, y_top + y), fill=color)
+
+    # Draw bottom to top
+    # Layer 1 (Bottom)
+    draw_pine_layer(36, 24, leaf_deep)
+    draw_pine_layer(34, 22, leaf_base)
+    draw_pine_layer(32, 18, leaf_highlight)
+
+    # Layer 2 (Mid)
+    draw_pine_layer(24, 20, leaf_shadow)
+    draw_pine_layer(22, 18, leaf_base)
+    draw_pine_layer(20, 14, leaf_highlight)
+
+    # Layer 3 (Top)
+    draw_pine_layer(12, 14, leaf_shadow)
+    draw_pine_layer(10, 12, leaf_base)
+    draw_pine_layer(8, 8, leaf_highlight)
+
+    img.save(output_path)
+    print(f"Generated Pine Tree at {output_path}")
 
 def generate_player(output_path):
     width, height = 32, 32
@@ -209,6 +292,11 @@ if __name__ == "__main__":
 
     generate_fog('assets/textures/fog.png')
 
-    generate_grass('assets/textures/grass.png')
-    generate_tree('assets/textures/tree.png')
+    generate_grass_variant('assets/textures/grass_base.png', "base")
+    generate_grass_variant('assets/textures/grass_flower.png', "flower")
+    generate_grass_variant('assets/textures/grass_stone.png', "stone")
+
+    generate_tree_oak('assets/textures/tree_oak.png')
+    generate_tree_pine('assets/textures/tree_pine.png')
+
     generate_player('assets/textures/player_idle.png')

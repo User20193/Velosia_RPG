@@ -21,18 +21,21 @@ class GameplayScene(Scene):
         res = velosia_core.ResourceManager.get_instance()
 
         # Load the generated gameplay textures
-        res.load_texture("grass", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'grass.png'))
-        res.load_texture("tree", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'tree.png'))
+        res.load_texture("grass_base", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'grass_base.png'))
+        res.load_texture("grass_flower", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'grass_flower.png'))
+        res.load_texture("grass_stone", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'grass_stone.png'))
+        res.load_texture("tree_oak", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'tree_oak.png'))
+        res.load_texture("tree_pine", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'tree_pine.png'))
         res.load_texture("player", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'player_idle.png'))
 
         screen_width = velosia_core.DisplayManager.get_internal_width()
         screen_height = velosia_core.DisplayManager.get_internal_height()
 
-        # Spawn grass floor (as ECS entities, rendered back-to-front because of reverse iteration)
-        # Note: In EnTT, entities created LAST render FIRST.
-        # We want the player to render on TOP of the trees (if below them on Y axis, which we'll handle simply via Z-ordering for now).
-        # To make Grass render on the very bottom, it must be created LAST.
-        # So we create Player -> Trees -> Grass.
+        # Expand the "world" slightly beyond the screen for the effect
+        world_width = int(screen_width * 1.5)
+        world_height = int(screen_height * 1.5)
+
+        # Spawn entities (Reverse iteration: Player -> Trees -> Grass)
 
         # 1. Player
         self.player_entity = self.ecs.create_entity()
@@ -41,40 +44,45 @@ class GameplayScene(Scene):
         self.ecs.add_velocity(self.player_entity, 0.0, 0.0)
         self.ecs.add_sprite(self.player_entity, "player")
         player_sprite = self.ecs.get_sprite(self.player_entity)
-        player_sprite.scale = 2.0  # Scale up for visibility
+        player_sprite.scale = 2.0
         player_sprite.src_width = 32
         player_sprite.src_height = 32
-        # Center origin
         player_sprite.origin_x = 16.0
         player_sprite.origin_y = 16.0
 
         # 2. Trees (Obstacles)
-        num_trees = 10
+        num_trees = 30
+        tree_types = ["tree_oak", "tree_pine"]
         for _ in range(num_trees):
             tree_ent = self.ecs.create_entity()
-            tx = random.uniform(50, screen_width - 50)
-            ty = random.uniform(50, screen_height - 50)
+            tx = random.uniform(50, world_width - 50)
+            ty = random.uniform(50, world_height - 50)
+            t_type = random.choice(tree_types)
             self.ecs.add_transform(tree_ent, tx, ty)
-            self.ecs.add_sprite(tree_ent, "tree")
+            self.ecs.add_sprite(tree_ent, t_type)
             tree_sprite = self.ecs.get_sprite(tree_ent)
             tree_sprite.scale = 2.0
             tree_sprite.src_width = 64
-            tree_sprite.src_height = 96
-            # Set origin to bottom center for proper depth sorting illusion
+            tree_sprite.src_height = 64
+            # Set origin near bottom center so the player can walk "behind" the top part
             tree_sprite.origin_x = 32.0
-            tree_sprite.origin_y = 80.0
+            tree_sprite.origin_y = 56.0
 
         # 3. Grass Background
         tile_scale = 2.0
         scaled_tile_size = int(32 * tile_scale)
-        cols = (screen_width // scaled_tile_size) + 1
-        rows = (screen_height // scaled_tile_size) + 1
+        cols = (world_width // scaled_tile_size) + 1
+        rows = (world_height // scaled_tile_size) + 1
+
+        grass_variants = ["grass_base"] * 10 + ["grass_flower"] * 2 + ["grass_stone"] * 1 # Weighted random
 
         for r in range(rows):
             for c in range(cols):
                 grass_ent = self.ecs.create_entity()
                 self.ecs.add_transform(grass_ent, c * scaled_tile_size, r * scaled_tile_size)
-                self.ecs.add_sprite(grass_ent, "grass")
+
+                g_type = random.choice(grass_variants)
+                self.ecs.add_sprite(grass_ent, g_type)
                 grass_sprite = self.ecs.get_sprite(grass_ent)
                 grass_sprite.scale = tile_scale
                 grass_sprite.src_width = 32
@@ -82,7 +90,7 @@ class GameplayScene(Scene):
 
     def update(self):
         # Update player input and velocity (reduced speed for better control)
-        velosia_core.PlayerInputSystem.update(self.ecs, "Player", 40.0)
+        velosia_core.PlayerInputSystem.update(self.ecs, "Player", 20.0)
         # Apply velocity to transform
         velosia_core.MovementSystem.update(self.ecs)
 
