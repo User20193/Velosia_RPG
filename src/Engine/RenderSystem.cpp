@@ -129,10 +129,10 @@ namespace Velosia::Engine {
                     transform.x, transform.y,
                     sprite.srcWidth * sprite.scale, sprite.srcHeight * sprite.scale
                 };
-                Vector2 origin = { 0.0f, 0.0f }; // Top-left origin
+                Vector2 origin = { sprite.originX * sprite.scale, sprite.originY * sprite.scale };
                 Color tint = { sprite.tintR, sprite.tintG, sprite.tintB, sprite.tintA };
 
-                DrawTexturePro(*tex, sourceRec, destRec, origin, 0.0f, tint);
+                DrawTexturePro(*tex, sourceRec, destRec, origin, sprite.rotation, tint);
             } else {
                 // Fallback to magenta rectangle if texture missing
                 DrawRectangle(static_cast<int>(transform.x), static_cast<int>(transform.y), sprite.srcWidth, sprite.srcHeight, MAGENTA);
