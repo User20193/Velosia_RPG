@@ -80,6 +80,8 @@ PYBIND11_MODULE(velosia_core, m) {
         .def_static("draw_text", &Velosia::Engine::RenderSystem::DrawText,
                     py::arg("font_id"), py::arg("text"), py::arg("x"), py::arg("y"), py::arg("font_size"), py::arg("spacing"),
                     py::arg("r")=255, py::arg("g")=255, py::arg("b")=255, py::arg("a")=255)
+        .def_static("measure_text_width", &Velosia::Engine::RenderSystem::MeasureTextWidth,
+                    py::arg("font_id"), py::arg("text"), py::arg("font_size"), py::arg("spacing"))
         .def_static("draw_entities", &Velosia::Engine::RenderSystem::DrawEntities);
 
     py::class_<Velosia::Engine::MovementSystem>(m, "MovementSystem")

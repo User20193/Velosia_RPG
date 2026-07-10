@@ -20,6 +20,9 @@ namespace Velosia::Engine {
         // Draws Text using a loaded custom font
         static void DrawText(const std::string& fontId, const std::string& text, float x, float y, float fontSize, float spacing, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 
+        // Utility to measure exact pixel width of text
+        static float MeasureTextWidth(const std::string& fontId, const std::string& text, float fontSize, float spacing);
+
         // The ECS System: loops through all entities with Transform and draws them
         static void DrawEntities(ECSManager& ecs);
     };

@@ -41,19 +41,22 @@ class MainMenuScene(Scene):
     def load(self):
         velosia_core.Logger.info("MainMenuScene: Loading...")
 
-        # Parallax assets are currently deferred.
         res = velosia_core.ResourceManager.get_instance()
 
-        # Load Custom Font (Updated to TTF with Cyrillic support)
-        res.load_font("fantasy_font", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'fonts', 'fantasy.ttf'))
+        # Load static background
+        res.load_texture("main_menu_bg", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'main_menu_bg.png'))
 
-        # Setup Parallax system deferred for now
-        # self.parallax = ParallaxBackground([...])
+        # Load Fonts
+        res.load_font("fantasy_font", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'fonts', 'fantasy.ttf'))
+        # Using ThaleahFat for English title and Pixellari for Cyrillic buttons
+        res.load_font("title_font", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'fonts', 'ThaleahFat.ttf'))
+        res.load_font("pixel_rus", os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'fonts', 'Pixellari.ttf'))
 
         # Setup Buttons (Translated and centered for 1366 resolution)
-        self.btn_new_game = UIButton(600, 350, 150, 30, "ИГРАТЬ", "fantasy_font")
-        self.btn_settings = UIButton(600, 420, 150, 30, "НАСТРОЙКИ", "fantasy_font")
-        self.btn_exit = UIButton(600, 490, 150, 30, "ВЫХОД", "fantasy_font")
+        # Assuming the buttons need to be centered, we calculate standard x starting position for ~150 width button
+        self.btn_new_game = UIButton(600, 350, 150, 30, "ИГРАТЬ", "pixel_rus")
+        self.btn_settings = UIButton(600, 420, 150, 30, "НАСТРОЙКИ", "pixel_rus")
+        self.btn_exit = UIButton(600, 490, 150, 30, "ВЫХОД", "pixel_rus")
 
     def update(self):
         # Parallax update deferred
@@ -70,13 +73,19 @@ class MainMenuScene(Scene):
     def render(self):
         velosia_core.RenderSystem.begin_draw()
 
-        # 1. Background (Parallax deferred, Raylib clears screen to black by default)
+        # 1. Background
+        velosia_core.RenderSystem.draw_texture("main_menu_bg", 0, 0, 1.0)
 
-        # 2. Draw Title (Centered for 1366 width)
-        # Using approximation: letters are ~40 pixels wide on average for size 80.
-        # "VELOSIA RPG" is 11 chars. 11 * ~40 = 440 width.
-        # Center x = (1366 - 440) / 2 = 463
-        velosia_core.RenderSystem.draw_text("fantasy_font", "VELOSIA RPG", 463, 100, 80, 4, 255, 215, 0, 255) # Gold tint
+        # 2. Draw Title (Perfectly Centered for 1366 width using C++ Text Measurement)
+        title_text = "VELOSIA RPG"
+        title_font_size = 120
+        title_spacing = 5.0
+
+        title_width = velosia_core.RenderSystem.measure_text_width("title_font", title_text, title_font_size, title_spacing)
+        screen_width = velosia_core.DisplayManager.get_internal_width()
+        center_x = (screen_width - title_width) / 2.0
+
+        velosia_core.RenderSystem.draw_text("title_font", title_text, center_x, 80, title_font_size, title_spacing, 255, 215, 0, 255) # Gold tint
 
         # 3. Draw Buttons
         self.btn_new_game.render()

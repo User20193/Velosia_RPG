@@ -96,6 +96,15 @@ namespace Velosia::Engine {
         }
     }
 
+    float RenderSystem::MeasureTextWidth(const std::string& fontId, const std::string& text, float fontSize, float spacing) {
+        Font* font = ResourceManager::GetInstance().GetFont(fontId);
+        if (font != nullptr) {
+            Vector2 size = MeasureTextEx(*font, text.c_str(), fontSize, spacing);
+            return size.x;
+        }
+        return static_cast<float>(MeasureText(text.c_str(), static_cast<int>(fontSize)));
+    }
+
     void RenderSystem::DrawEntities(ECSManager& ecs) {
         // Fallback: draw red rectangle if only transform exists
         auto viewRect = ecs.GetRegistry().view<TransformComponent>(entt::exclude<SpriteComponent>);
