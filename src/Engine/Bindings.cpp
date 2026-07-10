@@ -4,7 +4,9 @@
 #include "PAL.hpp"
 #include "Memory.hpp"
 #include "ECSManager.hpp"
+#include "TilemapSystem.hpp"
 #include "Components.hpp"
+#include <pybind11/stl.h>
 #include "RenderSystem.hpp"
 #include "MovementSystem.hpp"
 #include "EventBus.hpp"
@@ -138,6 +140,11 @@ PYBIND11_MODULE(velosia_core, m) {
         .def("get_texture_height", &Velosia::Engine::ResourceManager::GetTextureHeight, py::arg("id"))
         .def("load_font", &Velosia::Engine::ResourceManager::LoadFontAsset, py::arg("id"), py::arg("filepath"))
         .def("clear_fonts", &Velosia::Engine::ResourceManager::ClearFonts);
+
+    py::class_<Velosia::Engine::TilemapSystem>(m, "TilemapSystem")
+        .def_static("draw_map", &Velosia::Engine::TilemapSystem::DrawMap,
+                    py::arg("map_data"), py::arg("map_width"), py::arg("map_height"),
+                    py::arg("tile_size"), py::arg("texture_id"), py::arg("columns_in_tileset"));
 
     py::class_<Velosia::Engine::DisplayManager>(m, "DisplayManager")
         .def_static("set_internal_resolution", &Velosia::Engine::DisplayManager::SetInternalResolution)

@@ -56,6 +56,7 @@ target_include_directories(Core PUBLIC src/Core)
 pybind11_add_module(velosia_core
     src/Engine/Bindings.cpp
     src/Engine/RenderSystem.cpp
+    src/Engine/TilemapSystem.cpp
     src/Engine/MovementSystem.cpp
     src/Engine/PlayerInputSystem.cpp
     src/Engine/DisplayManager.cpp

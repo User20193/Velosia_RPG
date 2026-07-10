@@ -20,8 +20,19 @@ class GameplayScene(Scene):
         img_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'sprites', 'hero.png')
         velosia_core.ResourceManager.get_instance().load_texture("hero_tex", img_path)
 
+        # Load grass tilemap texture
+        grass_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'sprites', 'tilesets', 'grass_tile.png')
+        velosia_core.ResourceManager.get_instance().load_texture("grass_tileset", grass_path)
+
         level_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'data', 'level_01.json')
         self.entities = DataLoader.load_level(level_path, self.ecs)
+
+        # Generate a 20x15 map of grass tiles (id=1)
+        self.map_width = 45 # roughly screen width / 32
+        self.map_height = 25
+        self.tile_size = 32
+        # map_data is just a list of 1s
+        self.map_data = [1] * (self.map_width * self.map_height)
 
     def update(self):
         # 1. Player Input System: modifies velocity based on WASD
@@ -32,6 +43,17 @@ class GameplayScene(Scene):
 
     def render(self):
         velosia_core.RenderSystem.begin_draw()
+
+        # Draw tilemap
+        velosia_core.TilemapSystem.draw_map(
+            self.map_data,
+            self.map_width,
+            self.map_height,
+            self.tile_size,
+            "grass_tileset",
+            1 # columns in tileset (it's just a single 32x32 image for now)
+        )
+
         velosia_core.RenderSystem.draw_entities(self.ecs)
         velosia_core.RenderSystem.end_draw()
 

@@ -15,6 +15,11 @@ namespace Velosia::Engine {
 
         if (columnsInTileset <= 0) return;
 
+        if (mapData.size() < (size_t)(mapWidth * mapHeight)) {
+            Velosia::Core::Logger::Error("TilemapSystem: mapData size is smaller than mapWidth * mapHeight.");
+            return;
+        }
+
         for (int y = 0; y < mapHeight; ++y) {
             for (int x = 0; x < mapWidth; ++x) {
                 int tileIndex = mapData[y * mapWidth + x];
