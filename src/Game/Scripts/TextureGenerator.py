@@ -78,40 +78,65 @@ def generate_fog(output_path):
 
 def generate_grass(output_path):
     width, height = 32, 32
-    img = Image.new("RGBA", (width, height), (34, 139, 34, 255)) # Forest Green base
-    draw = ImageDraw.Draw(img)
+    img = Image.new("RGBA", (width, height), (40, 140, 40, 255))
+    pixels = img.load()
 
-    # Add some noise/blades of grass
-    for _ in range(30):
-        x = random.randint(0, width - 1)
-        y = random.randint(0, height - 1)
-        shade = random.choice([(0, 100, 0, 255), (50, 205, 50, 255), (0, 128, 0, 255)])
-        draw.point((x, y), fill=shade)
-        if y > 0:
-            draw.point((x, y-1), fill=shade)
+    # Strict pixel-art blades of grass
+    # Draw small "V" or "l" shapes in a rigid grid for a clean tile look
+    shade_dark = (20, 100, 20, 255)
+    shade_light = (60, 180, 60, 255)
+
+    for y in range(0, height, 8):
+        for x in range(0, width, 8):
+            # Offset every other row
+            ox = x + (4 if (y // 8) % 2 != 0 else 0)
+            if ox >= width: continue
+
+            # Draw a pixel blade
+            pixels[ox, y+4] = shade_dark
+            pixels[ox, y+3] = shade_light
+            pixels[ox, y+2] = shade_light
+            if ox+1 < width:
+                pixels[ox+1, y+3] = shade_dark
 
     img.save(output_path)
     print(f"Generated grass at {output_path}")
 
 def generate_tree(output_path):
-    width, height = 64, 96
+    width, height = 64, 64
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
+    # Pixel-art tree using blocky layered rectangles
+    trunk_color = (100, 50, 20, 255)
+    trunk_shadow = (70, 30, 10, 255)
+
+    leaf_dark = (10, 80, 10, 255)
+    leaf_mid = (20, 120, 20, 255)
+    leaf_light = (40, 160, 40, 255)
+
     # Trunk
-    trunk_color = (139, 69, 19, 255) # Saddle Brown
-    draw.rectangle([24, 64, 40, 90], fill=trunk_color)
+    draw.rectangle([28, 40, 36, 60], fill=trunk_color)
+    draw.rectangle([28, 40, 32, 60], fill=trunk_shadow) # Shading on trunk
 
-    # Leaves (3/4 top-down perspective, overlapping circles)
-    leaf_color_dark = (0, 100, 0, 255)
-    leaf_color_light = (34, 139, 34, 255)
+    # Base roots
+    draw.rectangle([24, 58, 40, 62], fill=trunk_color)
+    draw.rectangle([24, 58, 28, 62], fill=trunk_shadow)
 
-    # Draw bottom layer
-    draw.ellipse([8, 40, 56, 80], fill=leaf_color_dark)
-    # Draw top layer
-    draw.ellipse([16, 16, 48, 64], fill=leaf_color_light)
-    # Highlight
-    draw.ellipse([24, 24, 40, 40], fill=(50, 205, 50, 255))
+    # Canopy (blocky)
+    # Bottom layer
+    draw.rectangle([12, 32, 52, 48], fill=leaf_dark)
+    # Mid layer
+    draw.rectangle([16, 16, 48, 38], fill=leaf_mid)
+    # Top layer
+    draw.rectangle([22, 6, 42, 22], fill=leaf_light)
+
+    # Add some chunky "leaves" detail
+    pixels = img.load()
+    for y in range(16, 48, 4):
+        for x in range(16, 48, 4):
+            if pixels[x, y] == leaf_mid:
+                draw.rectangle([x, y, x+2, y+2], fill=leaf_dark)
 
     img.save(output_path)
     print(f"Generated tree at {output_path}")
@@ -124,23 +149,50 @@ def generate_player(output_path):
     # Shadow
     draw.ellipse([8, 26, 24, 30], fill=(0, 0, 0, 100))
 
-    # Body (Blue tunic)
-    draw.rectangle([10, 14, 22, 28], fill=(65, 105, 225, 255))
+    # Strict pixel-art character (16x24 size roughly)
+    skin = (255, 200, 150, 255)
+    hair = (100, 50, 20, 255)
+    shirt = (50, 100, 200, 255)
+    shirt_shadow = (30, 60, 150, 255)
+    pants = (50, 50, 50, 255)
+    shoes = (30, 20, 10, 255)
+    outline = (0, 0, 0, 255)
 
-    # Head
-    draw.ellipse([10, 4, 22, 16], fill=(255, 218, 185, 255)) # Peach/skin tone
+    # Head (10x10)
+    draw.rectangle([11, 4, 21, 14], fill=skin, outline=outline)
 
-    # Eyes (looking down/forward for 3/4 perspective)
-    draw.point((13, 10), fill=(0, 0, 0, 255))
-    draw.point((18, 10), fill=(0, 0, 0, 255))
+    # Hair
+    draw.rectangle([10, 2, 22, 6], fill=hair, outline=outline)
+    draw.rectangle([10, 6, 12, 10], fill=hair)
+    draw.rectangle([20, 6, 22, 10], fill=hair)
 
-    # Arms
-    draw.rectangle([6, 14, 10, 22], fill=(65, 105, 225, 255))
-    draw.rectangle([22, 14, 26, 22], fill=(65, 105, 225, 255))
+    # Eyes (2x2)
+    draw.rectangle([13, 9, 14, 10], fill=outline)
+    draw.rectangle([18, 9, 19, 10], fill=outline)
 
-    # Hands
-    draw.rectangle([6, 22, 10, 24], fill=(255, 218, 185, 255))
-    draw.rectangle([22, 22, 26, 24], fill=(255, 218, 185, 255))
+    # Body (12x10)
+    draw.rectangle([10, 15, 22, 23], fill=shirt, outline=outline)
+    draw.rectangle([16, 15, 22, 23], fill=shirt_shadow) # Shading on right side
+
+    # Belt
+    draw.rectangle([10, 22, 22, 23], fill=(150, 100, 50, 255), outline=outline)
+    draw.rectangle([15, 21, 17, 23], fill=(200, 200, 50, 255)) # Belt buckle
+
+    # Left Arm
+    draw.rectangle([6, 15, 9, 21], fill=shirt, outline=outline)
+    draw.rectangle([6, 21, 9, 23], fill=skin, outline=outline) # Hand
+
+    # Right Arm
+    draw.rectangle([23, 15, 26, 21], fill=shirt_shadow, outline=outline)
+    draw.rectangle([23, 21, 26, 23], fill=skin, outline=outline) # Hand
+
+    # Left Leg
+    draw.rectangle([11, 24, 15, 27], fill=pants, outline=outline)
+    draw.rectangle([11, 28, 15, 29], fill=shoes, outline=outline)
+
+    # Right Leg
+    draw.rectangle([17, 24, 21, 27], fill=pants, outline=outline)
+    draw.rectangle([17, 28, 21, 29], fill=shoes, outline=outline)
 
     img.save(output_path)
     print(f"Generated player at {output_path}")

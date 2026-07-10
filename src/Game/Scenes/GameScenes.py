@@ -81,8 +81,8 @@ class GameplayScene(Scene):
                 grass_sprite.src_height = 32
 
     def update(self):
-        # Update player input and velocity
-        velosia_core.PlayerInputSystem.update(self.ecs, "Player", 200.0)
+        # Update player input and velocity (reduced speed for better control)
+        velosia_core.PlayerInputSystem.update(self.ecs, "Player", 40.0)
         # Apply velocity to transform
         velosia_core.MovementSystem.update(self.ecs)
 
