@@ -22,9 +22,9 @@ class DataLoader:
         if "texture_id" in player_data:
             ecs_manager.add_sprite(player, player_data["texture_id"])
             sprite = ecs_manager.get_sprite(player)
-            sprite.src_width = 256 # Match placeholder asset size
-            sprite.src_height = 256
-            sprite.scale = 0.25 # Scale down to ~64px
+            sprite.src_width = 32 # Match placeholder asset size
+            sprite.src_height = 32
+            sprite.scale = 1.0 # Scale down to ~64px
 
         entities = {"player": player, "enemies": []}
 
@@ -38,9 +38,9 @@ class DataLoader:
             if "texture_id" in enemy_data:
                 ecs_manager.add_sprite(enemy, enemy_data["texture_id"])
                 sprite = ecs_manager.get_sprite(enemy)
-                sprite.src_width = 256
-                sprite.src_height = 256
-                sprite.scale = 0.25
+                sprite.src_width = 32
+                sprite.src_height = 32
+                sprite.scale = 1.0
                 # Tint enemies red to distinguish them from the player
                 sprite.tint_g = 100
                 sprite.tint_b = 100

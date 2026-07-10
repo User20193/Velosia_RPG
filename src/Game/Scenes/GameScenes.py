@@ -21,7 +21,7 @@ class GameplayScene(Scene):
         velosia_core.ResourceManager.get_instance().load_texture("hero_tex", img_path)
 
         # Load grass tilemap texture
-        grass_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'sprites', 'tilesets', 'grass_tile.png')
+        grass_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'textures', 'grass.png')
         velosia_core.ResourceManager.get_instance().load_texture("grass_tileset", grass_path)
 
         level_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'assets', 'data', 'level_01.json')
