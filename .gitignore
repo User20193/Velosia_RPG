@@ -1,0 +1,8 @@
+build/
+*.o
+*.so
+*.pyc
+__pycache__/
+.vscode/
+build_asan/
+build_asan/
