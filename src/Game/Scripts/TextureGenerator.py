@@ -94,169 +94,211 @@ def generate_tileset(output_path):
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Palette
+    # JRPG Palette (Softer, slightly desaturated)
     P = {
-        '.': (116, 186, 104, 255), # Grass Light
-        ',': (89,  158,  78, 255), # Grass Mid
-        ';': (55,  110,  46, 255), # Grass Dark
-        'w': (240, 240, 240, 255), # White Flower
-        'y': (245, 215,  66, 255), # Yellow Flower Center
-        'd': (184, 138,  92, 255), # Dirt Base
-        'D': (150, 105,  65, 255), # Dirt Shadow
-        'l': (209, 172, 134, 255), # Dirt Highlight
+        '.': (128, 184, 114, 255), # Grass Base
+        ',': (109, 163,  95, 255), # Grass Detail 1
+        ';': ( 89, 140,  76, 255), # Grass Detail 2 (Darker)
+        'w': (250, 250, 240, 255), # White Flower
+        'p': (230, 160, 200, 255), # Pink Flower
+        'y': (240, 210,  80, 255), # Yellow Flower Center
+        'd': (186, 148, 108, 255), # Dirt Base (Sand/Soil)
+        'D': (163, 126,  88, 255), # Dirt Shadow
+        'l': (212, 175, 133, 255), # Dirt Highlight
+        'r': (140, 140, 140, 255), # Small pebbles
     }
 
-    # Helper to fill random base with noise
+    def draw_grass_patch(cx, cy):
+        # Draw a small tuft of grass
+        draw.point((cx, cy), fill=P[';'])
+        draw.point((cx-1, cy), fill=P[','])
+        draw.point((cx+1, cy), fill=P[','])
+        draw.point((cx, cy-1), fill=P[','])
+
     def fill_grass(offset_x):
+        # Fill base
+        draw.rectangle([offset_x, 0, offset_x + 31, 31], fill=P['.'])
+        # Add soft noise and grass tufts
         for y in range(32):
             for x in range(32):
-                r = random.random()
-                c = '.' if r > 0.3 else (',' if r > 0.05 else ';')
-                draw.point((offset_x + x, y), fill=P[c])
+                if random.random() < 0.1:
+                    draw.point((offset_x + x, y), fill=P[','])
+        for _ in range(6):
+            tx, ty = random.randint(2, 29), random.randint(2, 29)
+            draw_grass_patch(offset_x + tx, ty)
 
     def fill_dirt(offset_x):
+        # Irregular dirt path with soft sandy colors
+        draw.rectangle([offset_x, 0, offset_x + 31, 31], fill=P['d'])
         for y in range(32):
             for x in range(32):
                 r = random.random()
-                c = 'd' if r > 0.2 else ('D' if r > 0.05 else 'l')
-                draw.point((offset_x + x, y), fill=P[c])
+                if r < 0.15:
+                    draw.point((offset_x + x, y), fill=P['D'])
+                elif r < 0.25:
+                    draw.point((offset_x + x, y), fill=P['l'])
+        # Add a few small pebbles
+        for _ in range(4):
+            px, py = random.randint(2, 29), random.randint(2, 29)
+            draw.point((offset_x + px, py), fill=P['r'])
+            draw.point((offset_x + px, py+1), fill=P['D']) # pebble shadow
 
-    random.seed(42)
+    random.seed(101) # new seed for new look
+
     # Tile 0: Base Grass
     fill_grass(0)
 
     # Tile 1: Flower Grass
     fill_grass(32)
-    # Add a few small pixel flowers
-    for _ in range(4):
-        fx = random.randint(2, 28)
-        fy = random.randint(2, 28)
-        draw.point((32+fx-1, fy), fill=P['w'])
-        draw.point((32+fx+1, fy), fill=P['w'])
-        draw.point((32+fx, fy-1), fill=P['w'])
-        draw.point((32+fx, fy+1), fill=P['w'])
+    # Add clusters of JRPG-style small flowers
+    for _ in range(5):
+        fx = random.randint(3, 28)
+        fy = random.randint(3, 28)
+        color = P['w'] if random.random() > 0.4 else P['p']
+        draw.point((32+fx-1, fy), fill=color)
+        draw.point((32+fx+1, fy), fill=color)
+        draw.point((32+fx, fy-1), fill=color)
+        draw.point((32+fx, fy+1), fill=color)
         draw.point((32+fx, fy), fill=P['y'])
 
-    # Tile 2: Dirt Path
+    # Tile 2: Dirt Path (Make it irregular, not a square crop)
     fill_dirt(64)
-    # Add grass edging to dirt
+    # Add heavy organic grass edging around the dirt tile so it blends organically
+    # instead of looking like a straight plowed field
     for y in range(32):
         for x in range(32):
-            if x < 4 or x > 27 or y < 4 or y > 27:
-                if random.random() > 0.4:
-                     draw.point((64+x, y), fill=P[';'])
+            # Edges become grass
+            dist_to_edge = min(x, 31-x, y, 31-y)
+            if dist_to_edge < random.randint(2, 6):
+                base = P['.'] if random.random() > 0.3 else P[',']
+                draw.point((64+x, y), fill=base)
+                if random.random() < 0.1:
+                    draw.point((64+x, y), fill=P[';']) # shadow edge
 
     img.save(output_path)
-    print(f"Generated Tileset at {output_path}")
+    print(f"Generated JRPG Tileset at {output_path}")
 
 def generate_arpg_tree(output_path):
-    # Generates a Secret of Mana style round tree (64x64)
+    # Generates a Secret of Mana style bushy tree (64x64)
     width, height = 64, 64
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Pixel Art Palette
+    # Pixel Art Palette - Secret of Mana / Chrono Trigger vibes
     P = {
-        'O': ( 24,  36,  24, 255), # Outline
-        'T': (105,  66,  36, 255), # Trunk Base
-        't': ( 71,  40,  18, 255), # Trunk Shadow
-        '1': ( 36,  92,  36, 255), # Leaf Deep Shadow
-        '2': ( 55, 148,  55, 255), # Leaf Mid
-        '3': ( 92, 194,  92, 255), # Leaf Light
-        '4': (144, 224, 144, 255), # Leaf Highlight
+        'O': ( 24,  36,  24, 255), # Outline/Deep Shadow
+        'T': ( 92,  64,  51, 255), # Trunk Base (Warm brown)
+        't': ( 61,  43,  31, 255), # Trunk Shadow
+        'c': ( 40,  28,  20, 255), # Trunk Deep Shadow / Bark lines
+        '1': ( 28,  69,  40, 255), # Leaf Deep Shadow (Dark forest green)
+        '2': ( 46, 105,  54, 255), # Leaf Shadow
+        '3': ( 69, 145,  75, 255), # Leaf Base
+        '4': (105, 186,  97, 255), # Leaf Highlight
+        '5': (163, 219, 134, 255), # Leaf Extreme Highlight (Sunlight)
     }
 
-    # ASCII Blueprint for top half of tree (scaled x2 for chunkiness)
-    # 32x32 matrix, drawn at scale=2 to fill 64x64
+    # ASCII Blueprint for an uneven, bushy JRPG tree (32x32 matrix, scale=2)
     tree_matrix = [
         "           OOOOOOOOO            ",
-        "        OOO333333333OOO         ",
-        "      OO333333444433333OO       ",
-        "     O3333344444444333333O      ",
-        "    O333344444444444333333O     ",
-        "   O33344444444444444333333O    ",
-        "  O3334444444444444444333333O   ",
-        "  O3333444444444444443333333O   ",
-        " O333333444444444444333333333O  ",
-        " O233333334444444433333333332O  ",
-        "O12233333333333333333333333221O ",
-        "O11222333333333333333333322211O ",
-        "O11122223333333333333332222111O ",
-        "O11112222233333333332222211111O ",
-        " O111112222222222222222111111O  ",
-        " O111111122222222222211111111O  ",
-        "  O1111111111111111111111111O   ",
+        "        OOO555544444OOO         ",
+        "      OO555554444444433OO       ",
+        "     O5555544443333444433O      ",
+        "    O555444333333223344433O     ",
+        "   O55443332221111222334433O    ",
+        "  O54433222111OOOO1112233322O   ",
+        "  O443322111OO3344OO11223322O   ",
+        " O4432211OOO33445544O11223221O  ",
+        " O433211O334455554433O1122211O  ",
+        "O332211O44554433322211O1111111O ",
+        "O32211O4455433221111OOO1111111O ",
+        "O22111O334432211OOOO4433O11111O ",
+        "O21111O2233211OO445554433O1111O ",
+        " O1111O112211O33444332211O111O  ",
+        " O1111OO1111O22332211111OO111O  ",
+        "  O1111OOOOOO1122111OOOO1111O   ",
         "  OO11111111111111111111111OO   ",
         "    OOO11111111111111111OOO     ",
         "       OOOOOOO111OOOOOOO        ",
         "             OTTO               ",
-        "             OTtO               ",
-        "             OTtO               ",
-        "             OTtO               ",
-        "            OOTtOO              ",
-        "           OTTTttO              ",
-        "           OTtOOtO              ",
-        "           OOO  OO              ",
+        "            OtTTtO              ",
+        "            OtccTO              ",
+        "            OtTTcO              ",
+        "           OotTTtcO             ",
+        "          OotTcTccO             ",
+        "          OotTccTtoO            ",
+        "          OOOO  OOOO            ",
     ]
 
     draw_ascii_matrix(draw, tree_matrix, P, offset_x=0, offset_y=0, scale=2)
+
+    # Add a soft drop shadow at the base
+    draw.ellipse([20, 54, 44, 60], fill=(0, 0, 0, 100))
+
     img.save(output_path)
-    print(f"Generated ARPG Tree at {output_path}")
+    print(f"Generated JRPG Tree at {output_path}")
 
 def generate_arpg_player(output_path):
     width, height = 32, 32
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Secret of Mana / Stardew Valley proportioned character
+    # Classic JRPG hero palette (More detailed shading)
     P = {
-        'O': (  0,   0,   0, 255), # Outline
-        'S': (255, 213, 170, 255), # Skin
-        's': (220, 163, 110, 255), # Skin Shadow
-        'H': (212,  88,  34, 255), # Hair (Red/Orange hero hair)
-        'h': (140,  45,  10, 255), # Hair shadow
-        'B': ( 40,  80, 200, 255), # Shirt Blue
-        'b': ( 20,  40, 120, 255), # Shirt Shadow
-        'Y': (230, 200,  30, 255), # Scarf/Trim Yellow
-        'P': (100, 100, 100, 255), # Pants
-        'L': ( 60,  30,  10, 255), # Leather Boots
+        'O': ( 20,  20,  25, 255), # Deep Outline
+        'S': (255, 219, 172, 255), # Skin Light
+        's': (224, 172, 105, 255), # Skin Mid
+        'd': (141,  85,  36, 255), # Skin Deep Shadow
+        'H': (219,  65,   5, 255), # Hair Highlight (Bright Orange/Red)
+        'h': (163,  35,   0, 255), # Hair Mid
+        'i': ( 92,  15,   0, 255), # Hair Deep Shadow
+        'B': ( 60, 100, 210, 255), # Shirt Blue Light
+        'b': ( 35,  55, 140, 255), # Shirt Blue Shadow
+        'C': ( 20,  30,  80, 255), # Shirt Deep Shadow
+        'Y': (240, 190,  40, 255), # Trim/Belt Light
+        'y': (160, 110,  15, 255), # Trim/Belt Shadow
+        'P': ( 90,  90,  95, 255), # Pants
+        'p': ( 55,  55,  60, 255), # Pants Shadow
+        'L': ( 70,  40,  20, 255), # Leather Boots Light
+        'l': ( 40,  20,  10, 255), # Leather Boots Shadow
+        'e': (255, 255, 255, 255), # Eye whites
+        'E': (  0,   0,   0, 255), # Eye pupils
     }
 
     # 16x24 Blueprint drawn at scale=1, centered
+    # Better proportions: bigger hair volume, actual face details, defined arms and boots
     player_matrix = [
         "      OOOO      ",
         "     OHHHHO     ",
-        "    OHHHHHHO    ",
         "    OHhHHhHO    ",
-        "   OHHSSSSHO    ",
-        "   OHOSOSOHO    ",
-        "   OHSSSSSHO    ",
-        "   OHHsssHHO    ",
-        "    OHHHHHHO    ",
-        "     OOOOOO     ",
+        "   OhiHHhhiHO   ",
+        "   OhSSSSSSHO   ",
+        "   OHSeESeEHO   ",
+        "   OhiSSSSiHO   ",
+        "   OihsssshiO   ",
+        "    OiiSSiiO    ",
+        "     OOddOO     ",
         "     OYYYYO     ",
-        "    OBBBBbBO    ",
-        "   OBBBBBbbBO   ",
-        "   OBbBBbBbBO   ",
-        "   OSOBBBBOSO   ",
-        "   OSOBbBbOSO   ",
+        "    OBBbbBBO    ",
+        "   OSBbCCbBSO   ",
+        "   OSbBBBBbSO   ",
+        "   OsOBCbCOsO   ",
         "   OOOPPPPOOO   ",
-        "      OPPO      ",
-        "     OPPPPO     ",
-        "     OP  PO     ",
+        "      OPpO      ",
+        "     OPppPO     ",
+        "     OP  pO     ",
         "    OLLO OLLO   ",
-        "    OLLO OLLO   ",
+        "    OlLO OlLO   ",
         "    OOOO OOOO   "
     ]
 
-    # Center it: (32-16)/2 = 8, (32-24)/2 = 4
-    draw_ascii_matrix(draw, player_matrix, P, offset_x=8, offset_y=4, scale=1)
+    # Center it: (32-16)/2 = 8, (32-22)/2 = 5
+    draw_ascii_matrix(draw, player_matrix, P, offset_x=8, offset_y=5, scale=1)
 
     # Shadow underneath
     draw.ellipse([8, 28, 24, 31], fill=(0, 0, 0, 100))
 
     img.save(output_path)
-    print(f"Generated ARPG Player at {output_path}")
+    print(f"Generated JRPG Player at {output_path}")
 
 
 if __name__ == "__main__":
