@@ -179,100 +179,98 @@ def generate_tileset(output_path):
     print(f"Generated JRPG Tileset at {output_path}")
 
 def generate_arpg_tree(output_path):
-    # Generates a Secret of Mana style bushy tree (64x64)
+    # Generates a classic lush Oak tree (64x64)
     width, height = 64, 64
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Pixel Art Palette - Secret of Mana / Chrono Trigger vibes
+    # Pixel Art Palette
     P = {
-        'O': ( 24,  36,  24, 255), # Outline/Deep Shadow
-        'T': ( 92,  64,  51, 255), # Trunk Base (Warm brown)
-        't': ( 61,  43,  31, 255), # Trunk Shadow
-        'c': ( 40,  28,  20, 255), # Trunk Deep Shadow / Bark lines
-        '1': ( 28,  69,  40, 255), # Leaf Deep Shadow (Dark forest green)
-        '2': ( 46, 105,  54, 255), # Leaf Shadow
+        'O': ( 24,  36,  24, 255), # Outline
+        'T': (105,  75,  50, 255), # Trunk Base
+        't': ( 71,  45,  30, 255), # Trunk Shadow
+        '1': ( 28,  69,  40, 255), # Leaf Deep Shadow
+        '2': ( 46, 105,  54, 255), # Leaf Mid-Shadow
         '3': ( 69, 145,  75, 255), # Leaf Base
         '4': (105, 186,  97, 255), # Leaf Highlight
-        '5': (163, 219, 134, 255), # Leaf Extreme Highlight (Sunlight)
     }
 
-    # ASCII Blueprint for an uneven, bushy JRPG tree (32x32 matrix, scale=2)
+    # ASCII Blueprint for an Oak tree crown (Scale=2)
     tree_matrix = [
         "           OOOOOOOOO            ",
-        "        OOO555544444OOO         ",
-        "      OO555554444444433OO       ",
-        "     O5555544443333444433O      ",
-        "    O555444333333223344433O     ",
-        "   O55443332221111222334433O    ",
-        "  O54433222111OOOO1112233322O   ",
-        "  O443322111OO3344OO11223322O   ",
-        " O4432211OOO33445544O11223221O  ",
-        " O433211O334455554433O1122211O  ",
-        "O332211O44554433322211O1111111O ",
-        "O32211O4455433221111OOO1111111O ",
-        "O22111O334432211OOOO4433O11111O ",
-        "O21111O2233211OO445554433O1111O ",
-        " O1111O112211O33444332211O111O  ",
-        " O1111OO1111O22332211111OO111O  ",
-        "  O1111OOOOOO1122111OOOO1111O   ",
+        "        OOO444444444OOO         ",
+        "      OO444444444444444OO       ",
+        "     O4444444444444444444O      ",
+        "    O334444444444444444333O     ",
+        "   O33334444444444444433333O    ",
+        "  O3333333444444444433333333O   ",
+        "  O3333333333333333333333333O   ",
+        " O233333333333333333333333332O  ",
+        " O222333333333333333333333222O  ",
+        "O12222333333333333333333222221O ",
+        "O11222222333333333333222222211O ",
+        "O11112222222222222222222221111O ",
+        "O11111122222222222222222111111O ",
+        " O111111111222222221111111111O  ",
+        " O111111111111111111111111111O  ",
+        "  O1111111111111111111111111O   ",
         "  OO11111111111111111111111OO   ",
         "    OOO11111111111111111OOO     ",
         "       OOOOOOO111OOOOOOO        ",
         "             OTTO               ",
-        "            OtTTtO              ",
-        "            OtccTO              ",
-        "            OtTTcO              ",
-        "           OotTTtcO             ",
-        "          OotTcTccO             ",
-        "          OotTccTtoO            ",
-        "          OOOO  OOOO            ",
+        "             OtTO               ",
+        "            OtTttO              ",
+        "            OOTtOO              ",
+        "           OtTTttoO             ",
+        "          OotTttTtoO            ",
+        "          OotTttTtoO            ",
+        "          OOOOOOOOOO            ",
     ]
 
     draw_ascii_matrix(draw, tree_matrix, P, offset_x=0, offset_y=0, scale=2)
 
-    # Add a soft drop shadow at the base
+    # Shadow at base
     draw.ellipse([20, 54, 44, 60], fill=(0, 0, 0, 100))
 
     img.save(output_path)
-    print(f"Generated JRPG Tree at {output_path}")
+    print(f"Generated Oak Tree at {output_path}")
 
 def generate_arpg_player(output_path):
     width, height = 32, 32
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Classic JRPG hero palette (More detailed shading)
+    # Wanderer/Traveler palette
     P = {
         'O': ( 20,  20,  25, 255), # Deep Outline
         'S': (255, 219, 172, 255), # Skin Light
         's': (224, 172, 105, 255), # Skin Mid
         'd': (141,  85,  36, 255), # Skin Deep Shadow
-        'H': (219,  65,   5, 255), # Hair Highlight (Bright Orange/Red)
-        'h': (163,  35,   0, 255), # Hair Mid
-        'i': ( 92,  15,   0, 255), # Hair Deep Shadow
-        'B': ( 60, 100, 210, 255), # Shirt Blue Light
-        'b': ( 35,  55, 140, 255), # Shirt Blue Shadow
-        'C': ( 20,  30,  80, 255), # Shirt Deep Shadow
-        'Y': (240, 190,  40, 255), # Trim/Belt Light
-        'y': (160, 110,  15, 255), # Trim/Belt Shadow
-        'P': ( 90,  90,  95, 255), # Pants
-        'p': ( 55,  55,  60, 255), # Pants Shadow
-        'L': ( 70,  40,  20, 255), # Leather Boots Light
-        'l': ( 40,  20,  10, 255), # Leather Boots Shadow
+        'H': ( 40,  40,  45, 255), # Hair Highlight (Black/Dark Grey)
+        'h': ( 25,  25,  30, 255), # Hair Mid
+        'i': ( 15,  15,  20, 255), # Hair Deep Shadow
+        'B': ( 75, 105,  75, 255), # Tunic Green Light
+        'b': ( 55,  80,  55, 255), # Tunic Green Shadow
+        'C': ( 35,  55,  35, 255), # Tunic Deep Shadow
+        'Y': (110,  70,  45, 255), # Leather Belt/Straps Light
+        'y': ( 80,  45,  30, 255), # Leather Belt/Straps Shadow
+        'P': (100,  85,  70, 255), # Pants (Brownish)
+        'p': ( 75,  60,  45, 255), # Pants Shadow
+        'L': ( 60,  50,  40, 255), # Boots
+        'l': ( 40,  30,  25, 255), # Boots Shadow
         'e': (255, 255, 255, 255), # Eye whites
-        'E': (  0,   0,   0, 255), # Eye pupils
+        'E': ( 60,  30,  10, 255), # Eye pupils (Brown)
     }
 
     # 16x24 Blueprint drawn at scale=1, centered
-    # Better proportions: bigger hair volume, actual face details, defined arms and boots
+    # Black messy hair, wanderer tunic
     player_matrix = [
         "      OOOO      ",
-        "     OHHHHO     ",
-        "    OHhHHhHO    ",
-        "   OhiHHhhiHO   ",
+        "     OihhiO     ",
+        "    OHHhhHHO    ",
+        "   OhHhhhhHhO   ",
         "   OhSSSSSSHO   ",
-        "   OHSeESeEHO   ",
+        "   OhSeESeEHO   ",
         "   OhiSSSSiHO   ",
         "   OihsssshiO   ",
         "    OiiSSiiO    ",
@@ -280,7 +278,7 @@ def generate_arpg_player(output_path):
         "     OYYYYO     ",
         "    OBBbbBBO    ",
         "   OSBbCCbBSO   ",
-        "   OSbBBBBbSO   ",
+        "   OSbBYYyBSO   ",
         "   OsOBCbCOsO   ",
         "   OOOPPPPOOO   ",
         "      OPpO      ",
@@ -294,11 +292,11 @@ def generate_arpg_player(output_path):
     # Center it: (32-16)/2 = 8, (32-22)/2 = 5
     draw_ascii_matrix(draw, player_matrix, P, offset_x=8, offset_y=5, scale=1)
 
-    # Shadow underneath
-    draw.ellipse([8, 28, 24, 31], fill=(0, 0, 0, 100))
+    # Removed the baked-in elliptical drop shadow to fix the "levitating" look.
+    # Proper dynamic shadows should be handled by a C++ rendering layer later.
 
     img.save(output_path)
-    print(f"Generated JRPG Player at {output_path}")
+    print(f"Generated Wanderer Player at {output_path}")
 
 
 if __name__ == "__main__":

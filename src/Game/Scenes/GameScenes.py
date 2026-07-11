@@ -39,19 +39,14 @@ class GameplayScene(Scene):
         self.map_data = []
         random.seed(42) # For consistent look during testing
 
-        # Create a simple path winding through the center
+        # Generate a pure grass/flower field without dirt paths
         for y in range(self.map_height):
             for x in range(self.map_width):
-                # Path logic (rough horizontal line with some noise)
-                is_path = (self.map_height // 2 - 2 <= y <= self.map_height // 2 + 2) and (x > 5)
-                if is_path and random.random() > 0.1:
-                    self.map_data.append(3) # Dirt
+                r = random.random()
+                if r > 0.95:
+                    self.map_data.append(2) # Flower
                 else:
-                    r = random.random()
-                    if r > 0.95:
-                        self.map_data.append(2) # Flower
-                    else:
-                        self.map_data.append(1) # Grass
+                    self.map_data.append(1) # Grass
 
         # Spawn Player
         self.player_entity = self.ecs.create_entity()
