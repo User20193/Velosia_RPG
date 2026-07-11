@@ -301,6 +301,16 @@ def generate_arpg_player(output_path):
 
 if __name__ == "__main__":
     os.makedirs('assets/textures', exist_ok=True)
+    generate_stone_wall('assets/textures/wall_bg.png')
+
+    # Generate variations of lianas
+    generate_liana('assets/textures/liana_64.png', length=64, base_color=(0, 200, 100, 255))
+    generate_liana('assets/textures/liana_128.png', length=128, base_color=(0, 180, 90, 255))
+    generate_liana('assets/textures/liana_256.png', length=256, base_color=(0, 150, 80, 255))
+    generate_liana('assets/textures/liana_384.png', length=384, base_color=(0, 120, 60, 255))
+
+    generate_fog('assets/textures/fog.png')
+
     generate_tileset('assets/textures/arpg_tileset.png')
     generate_arpg_tree('assets/textures/tree_arpg.png')
     generate_arpg_player('assets/textures/player_arpg.png')

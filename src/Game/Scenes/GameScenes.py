@@ -142,6 +142,22 @@ class MainMenuScene(Scene):
             ("liana_384", 384)
         ]
 
+        # In our ECS with Y-sorting logic:
+        # Entities are sorted by Y coordinate (TransformComponent.y)
+        # To make sure the wall background renders behind everything, we assign it a negative Y, or we handle it correctly.
+        # But wait! Our main menu might not need Y sorting, just direct drawing.
+        # Actually, in RenderSystem.cpp we have:
+        # std::sort(sortedEntities.begin(), sortedEntities.end(), [](const entt::entity& a, const entt::entity& b) {
+        #     return viewSprite.get<TransformComponent>(a).y < viewSprite.get<TransformComponent>(b).y;
+        # });
+        # This means things with SMALLER Y (higher up) are drawn FIRST (in the back).
+        # We want the wall to be drawn first, so we should assign it a very small Y.
+
+        self.bg_tile_scale = 2.0
+        self.bg_scaled_tile_size = int(32 * self.bg_tile_scale)
+        self.bg_cols = (screen_width // self.bg_scaled_tile_size) + 1
+        self.bg_rows = (screen_height // self.bg_scaled_tile_size) + 1
+
         # Spawn Lianas
         num_lianas = 20
         for i in range(num_lianas):
@@ -163,23 +179,6 @@ class MainMenuScene(Scene):
             sprite.origin_y = 0.0
 
             self.liana_entities.append(liana_ent)
-
-        # Setup ECS Background Entities (Tiling the 32x32 texture)
-        # Created last, so they render first.
-        tile_scale = 2.0
-        scaled_tile_size = int(32 * tile_scale)
-        cols = (screen_width // scaled_tile_size) + 1
-        rows = (screen_height // scaled_tile_size) + 1
-
-        for r in range(rows):
-            for c in range(cols):
-                bg_entity = self.ecs.create_entity()
-                self.ecs.add_transform(bg_entity, c * scaled_tile_size, r * scaled_tile_size)
-                self.ecs.add_sprite(bg_entity, "wall_bg")
-                bg_sprite = self.ecs.get_sprite(bg_entity)
-                bg_sprite.scale = tile_scale
-                bg_sprite.src_width = 32
-                bg_sprite.src_height = 32
 
         # Setup Buttons
         self.btn_new_game = UIButton(600, 350, 150, 30, "ИГРАТЬ", "pixel_rus")
@@ -205,7 +204,17 @@ class MainMenuScene(Scene):
     def render(self):
         velosia_core.RenderSystem.begin_draw()
 
-        # 1. Background (wall) & Lianas
+        # 1. Draw Background Wall manually so it stays behind the Y-sorted ECS entities (lianas)
+        for r in range(self.bg_rows):
+            for c in range(self.bg_cols):
+                velosia_core.RenderSystem.draw_texture(
+                    "wall_bg",
+                    c * self.bg_scaled_tile_size,
+                    r * self.bg_scaled_tile_size,
+                    self.bg_tile_scale
+                )
+
+        # 2. Draw Lianas (Y-sorted)
         velosia_core.RenderSystem.draw_entities(self.ecs)
 
         screen_width = velosia_core.DisplayManager.get_internal_width()
